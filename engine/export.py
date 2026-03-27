@@ -68,11 +68,14 @@ def export_insights(
     strategy_data = {}
     for name, r in mc_results.items():
         strategy_data[name] = {
-            "win_rate":  round(r.win_rate, 4),
-            "avg_score": round(r.avg_score, 2),
-            "std_score": round(r.std_score, 2),
-            "wins":      r.wins,
-            "runs":      r.runs,
+            "win_share":             round(r.win_share, 4),
+            "conditional_win_rate":  round(r.conditional_win_rate, 4),
+            "avg_score":             round(r.avg_score, 2),
+            "std_score":             round(r.std_score, 2),
+            "wins":                  r.wins,
+            "participations":        r.participations,
+            "total_auctions":        r.total_auctions,
+            "budget_utilization":    round(r.budget_utilization, 3),
         }
 
     payload = {

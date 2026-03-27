@@ -515,17 +515,358 @@ class PositionalArbitrageur(Manager):
         return self._desperation(self.cash_per_slot * premium * sc, state, rnd)
 
 
+# ═══════════════════════════════════════════════════════════
+# STRATEGY 9 — BudgetSweeper
+# Philosophy: hoard budget while the pool is full, then flood
+# the late market when opponents are purse-constrained.
+# An explicit deployment urgency term guarantees near-full
+# budget usage — directly minimising leftover purse waste.
+# ═══════════════════════════════════════════════════════════
+@dataclass
+class BudgetSweeperParams(StrategyParams):
+    hoard_until: float = 0.55       # sit back when > this fraction of pool remains
+    sweep_from: float = 0.30        # go aggressive when < this fraction remains
+    hoard_mult: float = 0.30        # cash_per_slot multiplier in hoard phase
+    transition_mult: float = 0.80   # multiplier in transition phase
+    sweep_exp: float = 1.6          # _premium_wtp exponent in sweep phase
+    sweep_boost: float = 1.25       # extra multiplier on top of premium in sweep
+    underspend_boost: float = 1.60  # scale-up when falling behind budget pace
+
+    def get_bounds(self):
+        return [(0.40, 0.70), (0.20, 0.45), (0.15, 0.55),
+                (0.60, 1.10), (1.2, 2.5), (1.0, 2.0), (1.0, 2.5)]
+
+
+class BudgetSweeper(Manager):
+    """
+    Patience-then-aggression.  Conserves early to outbid a cash-starved
+    field in the final third, and uses a budget-deployment urgency term
+    to ensure the purse is fully deployed.
+    """
+
+    params: BudgetSweeperParams
+
+    def willingness_to_pay(self, player, state, rnd):
+        if self.slots == 0:
+            return 0.0
+        p = self.params
+        pool_ratio = state["players_remaining"] / max(1, POOL_SIZE)
+
+        # How far behind are we on spending vs. roster-fill pace?
+        spent_pct = 1.0 - (self.purse / self.total_purse)
+        roster_pct = len(self.roster) / max(1, self.max_roster)
+        underspend = max(0.0, roster_pct - spent_pct)        # 0 → on track
+        urgency = 1.0 + underspend * p.underspend_boost
+
+        if pool_ratio > p.hoard_until:
+            wtp = self.cash_per_slot * p.hoard_mult
+        elif pool_ratio > p.sweep_from:
+            wtp = self.cash_per_slot * p.transition_mult
+        else:
+            wtp = self._premium_wtp(player, state, rnd, p.sweep_exp) * p.sweep_boost
+
+        return self._desperation(wtp * urgency, state, rnd)
+
+
+# ═══════════════════════════════════════════════════════════
+# STRATEGY 10 — FieldAwareAdaptor
+# Philosophy: reads the room.  When this team holds a purse-
+# per-slot advantage over the field it plays patiently;
+# when disadvantaged it bids aggressively.  A budget-pace
+# tracker then closes the gap between ideal and actual spend.
+# ═══════════════════════════════════════════════════════════
+@dataclass
+class FieldAwareAdaptorParams(StrategyParams):
+    advantage_threshold: float = 1.15   # cps / field_cps ratio above which we sit back
+    disadvantage_threshold: float = 0.85 # ratio below which we bid hard
+    advantage_mult: float = 0.82        # bid conservatively when ahead
+    parity_mult: float = 1.00           # neutral multiplier
+    disadvantage_mult: float = 1.22     # bid aggressively when behind
+    base_exp: float = 1.45              # _premium_wtp exponent baseline
+    t1_premium: float = 1.25            # extra multiplier for Tier-1 players
+    budget_urgency_scale: float = 1.30  # amplifies spend-lag into bid boost
+
+    def get_bounds(self):
+        return [(1.05, 1.30), (0.70, 0.95), (0.60, 1.00),
+                (0.85, 1.15), (1.05, 1.50), (1.1, 2.0),
+                (1.0, 1.8), (1.0, 2.0)]
+
+
+class FieldAwareAdaptor(Manager):
+    """
+    Relative-position bidder.  Uses agent_states to estimate who is
+    cash-rich / cash-poor, then inverts the field's position into
+    a bid multiplier.  Budget-pace term prevents unspent purse.
+    """
+
+    params: FieldAwareAdaptorParams
+
+    def _field_avg_cps(self, state: dict) -> float:
+        others = [
+            (v["purse"], v["slots"])
+            for n, v in state["agent_states"].items()
+            if n != self.name
+        ]
+        if not others:
+            return self.cash_per_slot
+        return sum(p for p, _ in others) / max(1, sum(s for _, s in others))
+
+    def willingness_to_pay(self, player, state, rnd):
+        if self.slots == 0:
+            return 0.0
+        p = self.params
+
+        relative = self.cash_per_slot / max(1.0, self._field_avg_cps(state))
+        if relative > p.advantage_threshold:
+            pos_mult = p.advantage_mult
+        elif relative < p.disadvantage_threshold:
+            pos_mult = p.disadvantage_mult
+        else:
+            pos_mult = p.parity_mult
+
+        # Budget-pace correction
+        slots_done = self.max_roster - self.slots
+        spent = self.total_purse - self.purse
+        ideal_spent = (slots_done / max(1, self.max_roster)) * self.total_purse
+        spend_lag = max(0.0, ideal_spent - spent) / self.total_purse
+        pos_mult *= 1.0 + spend_lag * p.budget_urgency_scale
+
+        tier = player.get("tier", 2)
+        if tier == 1:
+            wtp = self._premium_wtp(player, state, rnd, p.base_exp) * p.t1_premium
+        else:
+            wtp = self._premium_wtp(player, state, rnd, p.base_exp)
+
+        return self._desperation(wtp * pos_mult, state, rnd)
+
+
+# ═══════════════════════════════════════════════════════════
+# STRATEGY 11 — ContrarianSnapper
+# Philosophy: avoids crowded bidding wars.  Estimates how
+# many opponents can realistically compete for each player
+# and backs off when competition is high (T1), snapping up
+# under-contested depth instead.  Runs a late-auction sweep
+# to deploy any remaining budget.
+# ═══════════════════════════════════════════════════════════
+@dataclass
+class ContrarianSnapperParams(StrategyParams):
+    competition_threshold: int = 3  # back off T1 if more than this many rivals can pay
+    t1_contested_mult: float = 0.70  # T1 bid when heavily contested
+    t1_uncontested_mult: float = 1.50 # T1 bid when few rivals can compete
+    t2_mult: float = 1.10             # T2 bid multiplier
+    t3_snap_mult: float = 1.35        # depth snap multiplier
+    t3_min_pts: float = 50.0          # only snap Tier-3 if projected_points ≥ this
+    late_pool_threshold: float = 0.25 # "late auction" when this fraction of pool remains
+    late_sweep_exp: float = 1.75      # premium exponent for late sweep
+
+    def get_bounds(self):
+        return [(1.0, 6.0), (0.40, 1.00), (1.10, 2.20),
+                (0.80, 1.40), (0.90, 1.80), (30.0, 80.0),
+                (0.15, 0.40), (1.2, 2.5)]
+
+
+class ContrarianSnapper(Manager):
+    """
+    Contrarian: avoids T1 wars, targets under-contested value.
+    Key insight: existing strategies all fight for the same players →
+    large price distortions. Buying where competition is thin beats
+    paying full price for consensus picks.
+    """
+
+    params: ContrarianSnapperParams
+
+    def _competition_count(self, player: dict, state: dict) -> int:
+        """Count opponents who appear able to win this player at fair value."""
+        fair = 0.5 + player["vorp"] * state["cr_per_vorp"]
+        return sum(
+            1
+            for n, o in state["agent_states"].items()
+            if n != self.name
+            and o["slots"] > 0
+            and (o["purse"] / max(1, o["slots"])) >= fair * 0.65
+        )
+
+    def willingness_to_pay(self, player, state, rnd):
+        if self.slots == 0:
+            return 0.0
+        p = self.params
+        tier = player.get("tier", 2)
+        pool_ratio = state["players_remaining"] / max(1, POOL_SIZE)
+
+        # Late-auction: deploy remaining budget aggressively
+        if pool_ratio < p.late_pool_threshold:
+            return self._desperation(
+                self._premium_wtp(player, state, rnd, p.late_sweep_exp), state, rnd
+            )
+
+        competition = self._competition_count(player, state)
+
+        if tier == 1:
+            mult = (
+                p.t1_contested_mult
+                if competition > p.competition_threshold
+                else p.t1_uncontested_mult
+            )
+            wtp = self.cash_per_slot * mult
+        elif tier == 2:
+            wtp = self.cash_per_slot * p.t2_mult
+        elif player["projected_points"] >= p.t3_min_pts:
+            wtp = self.cash_per_slot * p.t3_snap_mult
+        else:
+            wtp = self.cash_per_slot * 0.75
+
+        return self._desperation(wtp, state, rnd)
+
+
+# ═══════════════════════════════════════════════════════════
+# HYBRID STRATEGIES
+# A hybrid blends two parent strategies' WTPs with a learnable
+# α, then applies a budget-deployment urgency kicker so the
+# full purse is deployed regardless of which parents are used.
+#
+# Architecture:
+#   1. HybridBase syncs its live state (purse / roster /
+#      role_counts) into both parent sub-instances before
+#      each willingness_to_pay call.
+#   2. raw_wtp = α·wtp_A + (1-α)·wtp_B
+#   3. urgency boost = 1 + (spend_lag / total_purse) × kicker
+#   4. final = min(raw_wtp × urgency, max_bid)
+#
+# Only α and budget_kicker are numeric → evolved by GA/CMA-ES.
+# The parent strategy types are fixed per subclass.
+# ═══════════════════════════════════════════════════════════
+@dataclass
+class _HybridBase(Manager):
+    """Shared blend-and-kick logic for all hybrid strategies."""
+
+    # Subclasses set these at class level
+    _SA_CLS: type[Manager] = field(init=False, repr=False, default=None)
+    _SA_PARAMS_CLS: type[StrategyParams] = field(init=False, repr=False, default=None)
+    _SB_CLS: type[Manager] = field(init=False, repr=False, default=None)
+    _SB_PARAMS_CLS: type[StrategyParams] = field(init=False, repr=False, default=None)
+
+    _sa: Manager = field(init=False, repr=False, default=None)
+    _sb: Manager = field(init=False, repr=False, default=None)
+
+    def __post_init__(self):
+        super().__post_init__()
+        self._sa = self._SA_CLS(name="_sa", params=self._SA_PARAMS_CLS())
+        self._sb = self._SB_CLS(name="_sb", params=self._SB_PARAMS_CLS())
+
+    def _sync(self, sub: Manager) -> None:
+        """Mirror live auction state into a sub-strategy instance."""
+        sub.purse = self.purse
+        sub.roster = self.roster
+        sub.role_counts = self.role_counts
+
+    def _blend(self, player: dict, state: dict, rnd: int) -> float:
+        """α·wtp_A + (1-α)·wtp_B with budget urgency kicker."""
+        if self.slots == 0:
+            return 0.0
+        self._sync(self._sa)
+        self._sync(self._sb)
+        wtp_a = self._sa.willingness_to_pay(player, state, rnd)
+        wtp_b = self._sb.willingness_to_pay(player, state, rnd)
+        alpha = self.params.alpha
+        raw = alpha * wtp_a + (1.0 - alpha) * wtp_b
+
+        # Budget urgency: penalise falling behind spend pace
+        slots_done = self.max_roster - self.slots
+        spent = self.total_purse - self.purse
+        ideal = (slots_done / max(1, self.max_roster)) * self.total_purse
+        lag = max(0.0, ideal - spent) / self.total_purse
+        boost = 1.0 + lag * self.params.budget_kicker
+
+        return min(raw * boost, self.max_bid)
+
+    def willingness_to_pay(self, player: dict, state: dict, rnd: int) -> float:
+        return self._blend(player, state, rnd)
+
+
+# ── Hybrid 1: FieldSniper ────────────────────────────────────────────────────
+# FieldAwareAdaptor × TierSniper
+# Field-reading position logic combined with disciplined T1 locking.
+# High quality picks + intelligent timing.
+@dataclass
+class FieldSniperParams(StrategyParams):
+    alpha: float = 0.55          # weight on FieldAwareAdaptor (vs TierSniper)
+    budget_kicker: float = 1.80  # urgency multiplier per unit spend-lag
+
+    def get_bounds(self):
+        return [(0.1, 0.9), (0.5, 4.0)]
+
+
+class FieldSniper(_HybridBase):
+    """Hybrid: FieldAwareAdaptor (α) × TierSniper (1-α) + budget urgency."""
+    _SA_CLS = FieldAwareAdaptor
+    _SA_PARAMS_CLS = FieldAwareAdaptorParams
+    _SB_CLS = TierSniper
+    _SB_PARAMS_CLS = TierSniperParams
+    params: FieldSniperParams
+
+
+# ── Hybrid 2: VampireSweeper ─────────────────────────────────────────────────
+# VampireMaximizer × BudgetSweeper
+# Price-enforcement to drain rivals combined with late-auction budget sweep.
+# Aggressive blocker that guarantees full spend.
+@dataclass
+class VampireSweeperParams(StrategyParams):
+    alpha: float = 0.60          # weight on VampireMaximizer (vs BudgetSweeper)
+    budget_kicker: float = 2.20  # stronger urgency — Vampire can sit back too long
+
+    def get_bounds(self):
+        return [(0.1, 0.9), (0.5, 4.0)]
+
+
+class VampireSweeper(_HybridBase):
+    """Hybrid: VampireMaximizer (α) × BudgetSweeper (1-α) + budget urgency."""
+    _SA_CLS = VampireMaximizer
+    _SA_PARAMS_CLS = VampireMaximizerParams
+    _SB_CLS = BudgetSweeper
+    _SB_PARAMS_CLS = BudgetSweeperParams
+    params: VampireSweeperParams
+
+
+# ── Hybrid 3: ContrarianArbitrageur ──────────────────────────────────────────
+# ContrarianSnapper × PositionalArbitrageur
+# Avoids crowded auctions while filling roles by scarcity-need.
+# Efficient, under-contested picks by role with near-full deployment.
+@dataclass
+class ContrarianArbitrageurParams(StrategyParams):
+    alpha: float = 0.50          # equal blend by default
+    budget_kicker: float = 1.60
+
+    def get_bounds(self):
+        return [(0.1, 0.9), (0.5, 4.0)]
+
+
+class ContrarianArbitrageur(_HybridBase):
+    """Hybrid: ContrarianSnapper (α) × PositionalArbitrageur (1-α) + budget urgency."""
+    _SA_CLS = ContrarianSnapper
+    _SA_PARAMS_CLS = ContrarianSnapperParams
+    _SB_CLS = PositionalArbitrageur
+    _SB_PARAMS_CLS = PositionalArbitrageurParams
+    params: ContrarianArbitrageurParams
+
+
 # ── Registry ─────────────────────────────────────────────────────────────────
 STRATEGY_REGISTRY: dict[str, tuple[type[Manager], type[StrategyParams]]] = {
-    "StarChaser":             (StarChaser,             StarChaserParams),
-    "ValueInvestor":          (ValueInvestor,           ValueInvestorParams),
-    "DynamicMaximizer":       (DynamicMaximizer,        DynamicMaximizerParams),
-    "ApexPredator":           (ApexPredator,            ApexPredatorParams),
-    "BarbellStrategist":      (BarbellStrategist,       BarbellStrategistParams),
-    "VampireMaximizer":       (VampireMaximizer,        VampireMaximizerParams),
-    "TierSniper":             (TierSniper,              TierSniperParams),
-    "NominationGambler":      (NominationGambler,       NominationGamblerParams),
-    "PositionalArbitrageur":  (PositionalArbitrageur,   PositionalArbitrageurParams),
+    "StarChaser":                (StarChaser,                StarChaserParams),
+    "ValueInvestor":             (ValueInvestor,              ValueInvestorParams),
+    "DynamicMaximizer":          (DynamicMaximizer,           DynamicMaximizerParams),
+    "ApexPredator":              (ApexPredator,               ApexPredatorParams),
+    "BarbellStrategist":         (BarbellStrategist,          BarbellStrategistParams),
+    "VampireMaximizer":          (VampireMaximizer,           VampireMaximizerParams),
+    "TierSniper":                (TierSniper,                 TierSniperParams),
+    "NominationGambler":         (NominationGambler,          NominationGamblerParams),
+    "PositionalArbitrageur":     (PositionalArbitrageur,      PositionalArbitrageurParams),
+    "BudgetSweeper":             (BudgetSweeper,              BudgetSweeperParams),
+    "FieldAwareAdaptor":         (FieldAwareAdaptor,          FieldAwareAdaptorParams),
+    "ContrarianSnapper":         (ContrarianSnapper,          ContrarianSnapperParams),
+    # Hybrids
+    "FieldSniper":               (FieldSniper,                FieldSniperParams),
+    "VampireSweeper":            (VampireSweeper,             VampireSweeperParams),
+    "ContrarianArbitrageur":     (ContrarianArbitrageur,      ContrarianArbitrageurParams),
 }
 
 

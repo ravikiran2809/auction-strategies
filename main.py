@@ -83,7 +83,7 @@ def cmd_simulate(args):
         export_pool(pool)
 
     names = args.strategies or None
-    results = run_monte_carlo(pool, names, args.mc, evolved=args.evolved)
+    results = run_monte_carlo(pool, names, args.mc, field_size=args.field_size, evolved=args.evolved)
     print_mc_results(results)
     out = export_insights(pool, results)
     print(f"  ✅ Insights saved → {out}")
@@ -137,6 +137,45 @@ def cmd_run(args):
     print_results(agents, unsold)
 
 
+def cmd_coevolve(args):
+    """
+    Sequentially evolve every strategy (or a named subset) against all others.
+    On each round, each strategy faces the current best params of its opponents,
+    then saves its improved params so the next strategy faces a tougher field.
+    Runs --rounds times to allow strategies to adapt to each other's evolution.
+    """
+    from engine.export import load_pool
+    from engine.simulation import evolve_strategy
+    from engine.strategies import STRATEGY_REGISTRY
+
+    if not Path("player_pool.json").exists():
+        print("No player_pool.json found. Run `python main.py build-pool` first.")
+        sys.exit(1)
+    pool = load_pool()
+
+    names = args.strategies or list(STRATEGY_REGISTRY.keys())
+    print(f"\n🧬 Co-evolution: {len(names)} strategies × {args.rounds} round(s)")
+    print(f"   algo={args.algo}  generations={args.generations}  mc_runs={args.mc_runs}\n")
+
+    for rnd in range(1, args.rounds + 1):
+        print(f"{'─'*60}")
+        print(f"  Round {rnd}/{args.rounds}")
+        print(f"{'─'*60}")
+        for nm in names:
+            opps = [o for o in names if o != nm]
+            print(f"\n  → Evolving {nm} vs {len(opps)} opponents …")
+            evolve_strategy(
+                pool, nm, opps,
+                algo=args.algo,
+                generations=args.generations,
+                mc_runs=args.mc_runs,
+                population=args.population,
+                evolved=True,
+                plot=False,
+            )
+    print("\n✅ Co-evolution complete. Run `python main.py simulate --evolved` to see results.")
+
+
 def cmd_serve(args):
     import uvicorn  # type: ignore
     uvicorn.run(
@@ -171,7 +210,9 @@ def main():
 
     # ── simulate ──────────────────────────────────────────────────────────────
     sim = sub.add_parser("simulate", help="Run Monte Carlo across strategies")
-    sim.add_argument("--mc", type=int, default=500, help="Number of auction simulations")
+    sim.add_argument("--mc", type=int, default=500, help="Number of auction rounds")
+    sim.add_argument("--field-size", type=int, default=6,
+                     help="Managers per auction (default: 6 to match real game)")
     sim.add_argument("--strategies", nargs="+", default=None, help="Strategy names (default: all)")
     sim.add_argument("--evolved", action="store_true", help="Use evolved params")
     sim.add_argument("--rebuild", action="store_true", help="Rebuild pool before simulating")
@@ -199,6 +240,18 @@ def main():
                      help="Opponents use their evolved params")
     evo.add_argument("--no-plot", action="store_true", help="Skip fitness curve plot")
     evo.set_defaults(func=cmd_evolve)
+
+    # ── coevolve ──────────────────────────────────────────────────────────────
+    cevo = sub.add_parser("coevolve", help="Co-evolve all strategies against each other")
+    cevo.add_argument("--rounds", type=int, default=2,
+                      help="Number of full co-evolution rounds (default: 2)")
+    cevo.add_argument("--strategies", nargs="+", default=None,
+                      help="Subset of strategies to co-evolve (default: all)")
+    cevo.add_argument("--algo", choices=["ga", "cmaes", "both"], default="ga")
+    cevo.add_argument("--generations", type=int, default=30)
+    cevo.add_argument("--mc-runs", type=int, default=20)
+    cevo.add_argument("--population", type=int, default=30)
+    cevo.set_defaults(func=cmd_coevolve)
 
     # ── run ───────────────────────────────────────────────────────────────────
     run = sub.add_parser("run", help="Run a single live auction (pretty-printed)")
