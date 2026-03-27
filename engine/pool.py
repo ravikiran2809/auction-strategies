@@ -17,6 +17,7 @@ Public API:
 from __future__ import annotations
 
 import math
+import random
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -29,17 +30,78 @@ from .overrides import apply_overrides
 TIER1_FLOOR = 80.0   # avg pts/match → Elite
 TIER2_FLOOR = 58.0   # avg pts/match → Solid, below = Depth
 
-_DEFAULT_CSV   = Path(__file__).parent.parent / "ipl_player_stats.csv"
-_DEFAULT_RULES = Path(__file__).parent.parent / "scoring_rules.json"
+_DEFAULT_CSV        = Path(__file__).parent.parent / "ipl_player_stats.csv"
+_DEFAULT_RULES      = Path(__file__).parent.parent / "scoring_rules.json"
+_DEFAULT_ROLES_PATH = Path(__file__).parent.parent / "player_roles.json"
 
 
-# ── Role classification (from _classify_role in full_simulation_claude.py) ──
+# ── Authoritative role lookup ────────────────────────────────────────────────
+def _load_role_lookup(
+    roles_path: Path | None = None,
+) -> tuple[dict[str, str], dict[str, str]]:
+    """
+    Load player_roles.json and build two indices:
+      full_index  : {full_name_lower → role}   (e.g. "sunil narine" → "AR")
+      last_index  : {last_name_lower → role}   (e.g. "narine" → "AR")
+
+    The last-name index handles CSV abbreviated names like "SP Narine".
+    Collisions in last_index (two players with the same surname, different
+    roles) are resolved by marking that surname as ambiguous ("") so the
+    heuristic fallback is used instead.
+    """
+    p = roles_path or _DEFAULT_ROLES_PATH
+    import json
+    if not p.exists():
+        return {}, {}
+    with open(p) as f:
+        data = json.load(f)
+
+    full_index: dict[str, str] = {}
+    last_count: dict[str, list[str]] = {}  # last_name → [role, ...]
+    for name, role in data.items():
+        if name.startswith("_"):
+            continue
+        full_index[name.lower()] = role
+        last = name.split()[-1].lower()
+        last_count.setdefault(last, []).append(role)
+
+    last_index: dict[str, str] = {}
+    for last, roles in last_count.items():
+        unique = set(roles)
+        last_index[last] = roles[0] if len(unique) == 1 else ""  # "" = ambiguous
+
+    return full_index, last_index
+
+
+def _lookup_role(
+    player_name: str,
+    full_index: dict[str, str],
+    last_index: dict[str, str],
+) -> str | None:
+    """
+    Try to resolve the role for *player_name* (CSV format, e.g. "SP Narine").
+
+    Resolution order:
+      1. Exact full-name match (case-insensitive)
+      2. Last-name match       (works for abbreviated CSV names)
+      3. None → caller uses stat heuristic
+    """
+    key = player_name.strip().lower()
+    if key in full_index:
+        return full_index[key]
+    last = key.split()[-1]
+    role = last_index.get(last, "")
+    return role if role else None  # "" (ambiguous) treated as miss
+
+
+# ── Stat-heuristic fallback ──────────────────────────────────────────────────
 def classify_role(
     total_runs: int,
     total_wkts: int,
     total_catches: int,
     total_balls_bowled: int,
 ) -> str:
+    """Stat-heuristic fallback — only used when lookup fails."""
     if total_catches >= 8 and total_runs < 150 and total_wkts == 0:
         return "WK"
     if total_runs >= 250 and total_wkts >= 8:
@@ -51,21 +113,35 @@ def classify_role(
     return "BAT"
 
 
-def _classify_roles_df(df: pl.DataFrame) -> pl.DataFrame:
-    """Vectorised role classification for an aggregated player DataFrame."""
+def _classify_roles_df(
+    df: pl.DataFrame,
+    roles_path: Path | None = None,
+) -> pl.DataFrame:
+    """
+    Assign roles to each player in the aggregated DataFrame.
+
+    Priority:
+      1. Authoritative lookup from player_roles.json (by full name or last name)
+      2. Stat heuristic as fallback for players not in the lookup
+    """
+    full_index, last_index = _load_role_lookup(roles_path)
+
+    def _classify(r: dict) -> str:
+        looked_up = _lookup_role(r["player_name"], full_index, last_index)
+        if looked_up:
+            return looked_up
+        return classify_role(
+            r["total_runs"],
+            r["total_wkts"],
+            r["total_catches"],
+            r["total_balls_bowled"],
+        )
+
     return df.with_columns(
         pl.struct(
-            ["total_runs", "total_wkts", "total_catches", "total_balls_bowled"]
+            ["player_name", "total_runs", "total_wkts", "total_catches", "total_balls_bowled"]
         )
-        .map_elements(
-            lambda r: classify_role(
-                r["total_runs"],
-                r["total_wkts"],
-                r["total_catches"],
-                r["total_balls_bowled"],
-            ),
-            return_dtype=pl.Utf8,
-        )
+        .map_elements(_classify, return_dtype=pl.Utf8)
         .alias("role")
     )
 
@@ -244,13 +320,109 @@ class CustomFunctionModel(ProjectionModel):
         return self.fn(scored_df)
 
 
+# ── Cross-season consistency standard deviation ───────────────────────────────
+def _compute_consistency_std(
+    scored_df: pl.DataFrame,
+    agg: pl.DataFrame,
+    *,
+    history_seasons: list[str] | None = None,
+) -> pl.DataFrame:
+    """
+    Refine std_dev using cross-season consistency.
+
+    Veterans (2+ historical seasons):
+      std_dev = max(within_season_std, cross_season_std)
+      A boom-bust player who varies greatly year-to-year gets higher std_dev,
+      reflecting genuine projection uncertainty.
+
+    New players (1 season only):
+      std_dev = within_season_std unchanged — no penalty for being new.
+      Playing only 1-2 seasons is itself a signal the selector trusts them;
+      we don't artificially discount that.
+    """
+    if history_seasons is None:
+        history_seasons = ["2022", "2023", "2024", "2025"]
+
+    season_avgs = (
+        scored_df
+        .filter(pl.col("ipl_year").is_in(history_seasons))
+        .group_by(["player_name", "ipl_year"])
+        .agg(pl.col("match_fantasy_points").mean().alias("season_avg"))
+    )
+    cross = (
+        season_avgs
+        .group_by("player_name")
+        .agg([
+            pl.col("season_avg").std(ddof=1).alias("cross_std"),
+            pl.col("season_avg").len().alias("n_seasons"),
+        ])
+        .with_columns(pl.col("cross_std").fill_null(0.0))
+    )
+    agg = (
+        agg.join(cross, on="player_name", how="left")
+        .with_columns([
+            pl.col("cross_std").fill_null(0.0),
+            pl.col("n_seasons").fill_null(1).cast(pl.Int32),
+        ])
+    )
+    # Veterans: raise std_dev if cross-season variability exceeds within-season noise
+    agg = agg.with_columns(
+        pl.when(
+            (pl.col("n_seasons") >= 2) & (pl.col("cross_std") > pl.col("std_dev"))
+        )
+        .then(pl.col("cross_std"))
+        .otherwise(pl.col("std_dev"))
+        .alias("std_dev")
+    ).drop(["cross_std", "n_seasons"])
+    return agg
+
+
+# ── Role-aware percentile tier assignment ─────────────────────────────────────
+def _assign_tiers_by_role(
+    df: pl.DataFrame,
+    *,
+    t1_frac: float = 0.20,
+    t2_frac: float = 0.40,
+) -> pl.DataFrame:
+    """
+    Assign tiers by percentile rank *within each role*.
+
+    Why role-aware instead of absolute thresholds?
+    Bowlers structurally score fewer fantasy points than batsmen/ARs.
+    An absolute pts threshold (e.g. 80) would classify elite bowlers like
+    Bumrah as T2 purely because bowling earns fewer fantasy pts — not because
+    they are lower quality. Role-aware percentiles ensure each position has
+    proportional elite representation.
+
+    t1_frac : top fraction per role  → T1 elite    (default 20%)
+    t2_frac : next fraction per role → T2 quality  (default 40%)
+    T3      : bottom 40% per role   → depth
+    """
+    rows = df.to_dicts()
+    by_role: dict[str, list[dict]] = {}
+    for r in rows:
+        by_role.setdefault(r["role"], []).append(r)
+
+    for group in by_role.values():
+        group.sort(key=lambda x: x["projected_points"], reverse=True)
+        n = len(group)
+        n_t1 = max(1, round(n * t1_frac))
+        n_t2 = max(n_t1 + 1, round(n * (t1_frac + t2_frac)))
+        for i, p in enumerate(group):
+            p["tier"] = 1 if i < n_t1 else (2 if i < n_t2 else 3)
+
+    flattened = [p for grp in by_role.values() for p in grp]
+    orig_cols = df.columns
+    return pl.DataFrame(flattened).select([*orig_cols, "tier"])
+
+
 # ── Main entry point ─────────────────────────────────────────────────────────
 def build_pool(
     csv_path: str | Path | None = None,
     model: ProjectionModel | None = None,
     *,
     min_matches: int = 5,
-    pool_size: int = 80,
+    pool_size: int = 130,
     num_teams: int = 6,
     role_requirements: dict[str, int] | None = None,
     vorp_method: str = "quantile",   # "quantile" | "depth"
@@ -266,25 +438,34 @@ def build_pool(
     role_requirements = role_requirements or {"BAT": 5, "BOWL": 4, "AR": 2, "WK": 2}
 
     if model is None:
-        model = WeightedSeasonModel({"2024": 1.0})
+        # 2025 only for projected_points — avoids diluting current form with stale data.
+        # Cross-season std (step 2a) still uses multi-year history for consistency.
+        model = WeightedSeasonModel({"2025": 1.0})
 
-    # 1. Load + score match log
+    # 1. Load + score match log (all years — needed for cross-season consistency)
     scored = _load_and_score(csv_path, rules_path)
 
-    # 2. Project → aggregated player stats
+    # 2. Project → aggregated player stats (2025 data only by default)
     agg = model.project(scored)
 
-    # 3. Filter minimum matches
+    # 2a. Refine std_dev with cross-season consistency from full history.
+    #     New players (1 season) are NOT penalised — their within-season std is kept.
+    agg = _compute_consistency_std(scored, agg)
+
+    # 3. Filter minimum matches (based on the projection season only)
     agg = agg.filter(pl.col("matches_played") >= min_matches)
 
     # 4. Classify roles
     agg = _classify_roles_df(agg)
 
-    # 5. Round projected_points and std_dev
+    # 5. Round projected_points and std_dev; cap std_dev at projected_points
+    #    Per-match std cannot meaningfully exceed average per-match score —
+    #    a cap prevents extreme cross-season volatility from making BarbellStrategist
+    #    boycott elite players like Bumrah (raw std=103, pts=104 → adj_pts≈1).
     agg = agg.with_columns(
         [
             pl.col("projected_points").round(1),
-            pl.col("std_dev").round(1),
+            pl.min_horizontal("std_dev", "projected_points").round(1).alias("std_dev"),
         ]
     )
 
@@ -292,14 +473,30 @@ def build_pool(
     agg = _calculate_vorp(agg, vorp_method, num_teams, role_requirements)
     agg = agg.with_columns(pl.col("vorp").round(1))
 
-    # 7. Tier assignment
+    # 7. Tier assignment — role-aware percentile (top 20% per role = T1, next 40% = T2)
+    #    This prevents the structural bias where bowlers are always T2/T3 because
+    #    they earn fewer raw fantasy points than batsmen and all-rounders.
+    agg = _assign_tiers_by_role(agg)
+
+    # 7b. Base price by tier (T1=₹5Cr, T2=₹3Cr, T3=₹1Cr)
+    #     Capped at 5 so strategies have room to bid competitively without
+    #     the floor alone draining most of their purse on marquee players.
     agg = agg.with_columns(
-        pl.when(pl.col("projected_points") > TIER1_FLOOR)
-        .then(1)
-        .when(pl.col("projected_points") > TIER2_FLOOR)
-        .then(2)
-        .otherwise(3)
-        .alias("tier")
+        pl.when(pl.col("tier") == 1).then(5.0)
+        .when(pl.col("tier") == 2).then(3.0)
+        .otherwise(1.0)
+        .alias("base_price")
+    )
+
+    # 7c. Marquee flag — top MARQUEE_SIZE players by projected_points.
+    #     These open the auction regardless of role, ensuring superstars
+    #     are contested when all franchises still have full wallets.
+    agg = agg.sort("projected_points", descending=True)
+    marquee_names = set(agg["player_name"].head(MARQUEE_SIZE).to_list())
+    agg = agg.with_columns(
+        pl.col("player_name")
+        .map_elements(lambda n: n in marquee_names, return_dtype=pl.Boolean)
+        .alias("is_marquee")
     )
 
     # 8. Take top N by projected_points
@@ -307,10 +504,77 @@ def build_pool(
 
     # 9. Convert to list of dicts
     pool = agg.select(
-        ["player_name", "role", "projected_points", "std_dev", "vorp", "tier", "matches_played"]
+        ["player_name", "role", "projected_points", "std_dev",
+         "vorp", "tier", "base_price", "is_marquee", "matches_played"]
     ).rename({"matches_played": "matches"}).to_dicts()
 
     # 10. Apply manual overrides
     pool = apply_overrides(pool, overrides_path)
 
     return pool
+
+
+# ── IPL-realistic auction ordering ───────────────────────────────────────────
+# Real IPL auction structure:
+#   1. Role SETS processed in order: BAT → AR → WK → BOWL
+#   2. Within each role: capped players (T1+T2) before uncapped (T3)
+#   3. Within each capped/uncapped group: players divided into base-price
+#      brackets of ~BRACKET_SIZE players (highest projected_points first).
+#   4. Within each bracket: randomised — teams know the approximate price
+#      band of the next player but not the exact pick order.
+#   Round 2+ (unsold re-entry) is an accelerated auction with no set order.
+
+_ROLE_ORDER = ["BAT", "AR", "WK", "BOWL"]
+_BRACKET_SIZE = 4          # players per base-price bracket within a set
+MARQUEE_SIZE  = 10         # top-N players that form the opening Marquee set
+
+
+def order_pool(
+    pool: list[dict],
+    *,
+    rng: random.Random | None = None,
+) -> list[dict]:
+    """
+    Order the pool to mirror the real IPL auction set structure.
+
+    Sequence
+    --------
+    1. MARQUEE SET  — top MARQUEE_SIZE players by projected_points regardless
+       of role, randomised within the set.  Full wallets guarantee price wars.
+
+    2. CAPPED SETS (T1 + T2, non-marquee) — processed ROLE BY ROLE in fixed
+       order: BAT → AR → WK → BOWL.  Within each role set, players are drawn
+       in RANDOM order (the auctioneer picks a card from the current set; teams
+       know which role is up but not which exact player comes next).
+
+    3. UNCAPPED SETS (T3, non-marquee) — same fixed role order, each role
+       randomised within.
+
+    The role order is FIXED (not shuffled) because in real IPL franchises know
+    the macro schedule and budget accordingly.  Randomness lives entirely
+    within each set, matching the card-draw mechanic.
+    """
+    if rng is None:
+        rng = random.Random()
+
+    # Partition into marquee vs rest
+    marquee = [p for p in pool if p.get("is_marquee", False)]
+    rest    = [p for p in pool if not p.get("is_marquee", False)]
+
+    # 1. Marquee set — random draw order
+    rng.shuffle(marquee)
+    result: list[dict] = list(marquee)
+
+    # 2. Capped (T1+T2) by role, random within role set
+    for role in _ROLE_ORDER:
+        capped = [p for p in rest if p["role"] == role and p.get("tier", 3) <= 2]
+        rng.shuffle(capped)
+        result.extend(capped)
+
+    # 3. Uncapped (T3) by role, random within role set
+    for role in _ROLE_ORDER:
+        uncapped = [p for p in rest if p["role"] == role and p.get("tier", 3) == 3]
+        rng.shuffle(uncapped)
+        result.extend(uncapped)
+
+    return result

@@ -85,8 +85,11 @@ def apply_overrides(
             player = dict(player)  # don't mutate the original
             player["projected_points"] = overrides[name]["projected_points"]
             player["override_note"] = overrides[name].get("note", "")
-            # Recalculate tier
+            # Recalculate tier (flat thresholds — role-aware tiers are set during build_pool)
             pts = player["projected_points"]
             player["tier"] = 1 if pts > 80 else (2 if pts > 58 else 3)
+            # Keep base_price consistent with the (possibly updated) tier
+            _BASE_PRICES = {1: 5.0, 2: 3.0, 3: 1.0}
+            player["base_price"] = _BASE_PRICES[player["tier"]]
         result.append(player)
     return result

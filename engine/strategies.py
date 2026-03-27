@@ -19,6 +19,7 @@ Adding a new strategy:
 from __future__ import annotations
 
 import json
+import math
 import random
 from dataclasses import dataclass, field, fields, asdict
 from pathlib import Path
@@ -26,7 +27,7 @@ from typing import Optional
 
 _DEFAULT_PARAMS_PATH = Path(__file__).parent.parent / "strategy_params.json"
 
-POOL_SIZE = 80  # used by ValueInvestor urgency scaler
+POOL_SIZE = 130  # used by ValueInvestor urgency scaler
 
 
 # ── Param bounds metadata ────────────────────────────────────────────────────
@@ -99,7 +100,8 @@ class Manager:
 
     @property
     def max_bid(self) -> float:
-        return max(0.0, self.purse - 0.5 * max(0, self.mandatory - 1))
+        # Reserve 1 Cr (T3 base price) per remaining mandatory slot except the current one
+        return max(0.0, self.purse - 1.0 * max(0, self.mandatory - 1))
 
     @property
     def cash_per_slot(self) -> float:
@@ -294,9 +296,9 @@ class ApexPredator(Manager):
 class BarbellStrategistParams(StrategyParams):
     hi_cost_threshold: float = 0.15  # cost_impact > this → penalise volatility
     lo_cost_threshold: float = 0.05  # cost_impact < this → reward upside
-    hi_penalty_mult: float = 1.0     # std_dev multiplier for expensive picks
-    lo_reward_mult: float = 1.0      # std_dev multiplier for cheap picks
-    mid_penalty_mult: float = 0.25   # std_dev multiplier for mid-range picks
+    hi_penalty_mult: float = 0.15    # std_dev multiplier for expensive picks (season avg dominates)
+    lo_reward_mult: float = 0.15     # std_dev multiplier for cheap picks
+    mid_penalty_mult: float = 0.05   # std_dev multiplier for mid-range picks
     base_exp: float = 1.6            # _premium_wtp exponent
 
     def get_bounds(self):
@@ -849,6 +851,170 @@ class ContrarianArbitrageur(_HybridBase):
     params: ContrarianArbitrageurParams
 
 
+# ── Hybrid 4: NominationFieldAdaptor ─────────────────────────────────────────
+# NominationGambler × FieldAwareAdaptor
+# Phase-timing discipline from NG + field-position awareness from FAA.
+# NominationGambler conserves early and times T1 entries; FieldAwareAdaptor
+# continuously reads who is cash-rich/poor and corrects spend lag.
+# Together they close both gaps: phase-blind FAA & field-blind NG.
+@dataclass
+class NominationFieldAdaptorParams(StrategyParams):
+    alpha: float = 0.50          # weight on NominationGambler (vs FieldAwareAdaptor)
+    budget_kicker: float = 1.70  # urgency multiplier per unit spend-lag
+
+    def get_bounds(self):
+        return [(0.1, 0.9), (0.5, 4.0)]
+
+
+class NominationFieldAdaptor(_HybridBase):
+    """Hybrid: NominationGambler (α) × FieldAwareAdaptor (1-α) + budget urgency."""
+    _SA_CLS = NominationGambler
+    _SA_PARAMS_CLS = NominationGamblerParams
+    _SB_CLS = FieldAwareAdaptor
+    _SB_PARAMS_CLS = FieldAwareAdaptorParams
+    params: NominationFieldAdaptorParams
+
+
+# ── Hybrid 5: VampireGambler ─────────────────────────────────────────────────
+# VampireMaximizer × NominationGambler
+# Price-enforcement bleed with phase-timing gate:
+# early auction → conserve budget (NG phase-A), mid → bleed rivals (Vampire),
+# late → both strategies agree to sweep aggressively.
+# Fixes VampireMaximizer's weakness of sitting back without a timing signal.
+@dataclass
+class VampireGamblerParams(StrategyParams):
+    alpha: float = 0.60          # weight on VampireMaximizer (vs NominationGambler)
+    budget_kicker: float = 1.90  # stronger urgency — Vampire-style wait can over-save
+
+    def get_bounds(self):
+        return [(0.1, 0.9), (0.5, 4.0)]
+
+
+class VampireGambler(_HybridBase):
+    """Hybrid: VampireMaximizer (α) × NominationGambler (1-α) + budget urgency."""
+    _SA_CLS = VampireMaximizer
+    _SA_PARAMS_CLS = VampireMaximizerParams
+    _SB_CLS = NominationGambler
+    _SB_PARAMS_CLS = NominationGamblerParams
+    params: VampireGamblerParams
+
+
+# ═══════════════════════════════════════════════════
+# ContextualEnsemble — scalable 4-parent mixture model
+# ═══════════════════════════════════════════════════
+# Architecture:
+#   Parents: FieldAwareAdaptor, VampireMaximizer,
+#            NominationGambler, PositionalArbitrageur
+#   Blending: softmax over log-weights, then two layers
+#             of context modifiers (phase × tier).
+#   Evolution: GA/CMA-ES learns which parent to trust,
+#              and how much that shifts per context cell.
+#   Scalability: adding a new parent = one new log-weight.
+# ═══════════════════════════════════════════════════
+@dataclass
+class ContextualEnsembleParams(StrategyParams):
+    # Base log-weights (exp → softmax-normalised at call time)
+    lw_field:     float = 0.0   # FieldAwareAdaptor
+    lw_vampire:   float = 0.0   # VampireMaximizer
+    lw_gambler:   float = 0.0   # NominationGambler
+    lw_positional: float = 0.0  # PositionalArbitrageur
+
+    # Phase context multipliers
+    early_gambler_boost:  float = 1.50  # up-weight NG when pool >50% (conserve phase)
+    late_field_boost:     float = 1.40  # up-weight FAA when pool <25% (read cash)
+    late_vampire_boost:   float = 1.20  # up-weight Vampire when pool <25% (drain)
+
+    # Tier context multipliers
+    t1_field_boost:   float = 1.30  # FAA T1 premium logic is strong
+    t1_vampire_boost: float = 1.10  # Vampire enforcement on sought-after T1s
+
+    budget_kicker: float = 1.50     # spend-lag urgency
+
+    def get_bounds(self):
+        return [
+            (-2.0, 2.0), (-2.0, 2.0), (-2.0, 2.0), (-2.0, 2.0),  # log-weights
+            (0.8, 3.0), (0.8, 3.0), (0.8, 2.5),                   # phase boosts
+            (0.8, 2.5), (0.8, 2.0),                                # tier boosts
+            (0.5, 4.0),                                            # budget_kicker
+        ]
+
+
+class ContextualEnsemble(Manager):
+    """
+    4-parent mixture model with context-dependent softmax blending.
+
+    The GA/CMA-ES evolves log-weights and context modifiers so the
+    ensemble learns *which parent strategy to trust* at each point in
+    the auction (early / mid / late phase, T1 vs. other tier).  This
+    is more scalable than fixed-α pairs: adding a parent adds one param.
+    """
+
+    params: ContextualEnsembleParams
+
+    def __post_init__(self):
+        super().__post_init__()
+        self._fa = FieldAwareAdaptor(name="_fa", params=FieldAwareAdaptorParams())
+        self._vm = VampireMaximizer(name="_vm", params=VampireMaximizerParams())
+        self._ng = NominationGambler(name="_ng", params=NominationGamblerParams())
+        self._pa = PositionalArbitrageur(name="_pa", params=PositionalArbitrageurParams())
+
+    def _sync_all(self) -> None:
+        for sub in (self._fa, self._vm, self._ng, self._pa):
+            sub.purse = self.purse
+            sub.roster = self.roster
+            sub.role_counts = self.role_counts
+
+    def willingness_to_pay(self, player: dict, state: dict, rnd: int) -> float:
+        if self.slots == 0:
+            return 0.0
+        p = self.params
+        self._sync_all()
+
+        # Gather parent WTPs
+        wtp_fa = self._fa.willingness_to_pay(player, state, rnd)
+        wtp_vm = self._vm.willingness_to_pay(player, state, rnd)
+        wtp_ng = self._ng.willingness_to_pay(player, state, rnd)
+        wtp_pa = self._pa.willingness_to_pay(player, state, rnd)
+
+        # Base softmax weights via log-weights
+        w = [
+            math.exp(p.lw_field),
+            math.exp(p.lw_vampire),
+            math.exp(p.lw_gambler),
+            math.exp(p.lw_positional),
+        ]
+
+        # Phase context
+        pool_ratio = state["players_remaining"] / max(1, POOL_SIZE)
+        if pool_ratio > 0.50:     # early auction — NominationGambler timing
+            w[2] *= p.early_gambler_boost
+        elif pool_ratio < 0.25:   # late auction — field-read + drain
+            w[0] *= p.late_field_boost
+            w[1] *= p.late_vampire_boost
+
+        # Tier context
+        tier = player.get("tier", 2)
+        if tier == 1:
+            w[0] *= p.t1_field_boost
+            w[1] *= p.t1_vampire_boost
+
+        # Normalise
+        total = sum(w)
+        w = [x / total for x in w]
+
+        # Weighted blend
+        raw = w[0] * wtp_fa + w[1] * wtp_vm + w[2] * wtp_ng + w[3] * wtp_pa
+
+        # Budget-pace urgency kicker
+        slots_done = self.max_roster - self.slots
+        spent = self.total_purse - self.purse
+        ideal = (slots_done / max(1, self.max_roster)) * self.total_purse
+        lag = max(0.0, ideal - spent) / self.total_purse
+        boost = 1.0 + lag * p.budget_kicker
+
+        return min(raw * boost, self.max_bid)
+
+
 # ── Registry ─────────────────────────────────────────────────────────────────
 STRATEGY_REGISTRY: dict[str, tuple[type[Manager], type[StrategyParams]]] = {
     "StarChaser":                (StarChaser,                StarChaserParams),
@@ -863,10 +1029,14 @@ STRATEGY_REGISTRY: dict[str, tuple[type[Manager], type[StrategyParams]]] = {
     "BudgetSweeper":             (BudgetSweeper,              BudgetSweeperParams),
     "FieldAwareAdaptor":         (FieldAwareAdaptor,          FieldAwareAdaptorParams),
     "ContrarianSnapper":         (ContrarianSnapper,          ContrarianSnapperParams),
-    # Hybrids
+    # Hybrids (fixed-α, 2-parent)
     "FieldSniper":               (FieldSniper,                FieldSniperParams),
     "VampireSweeper":            (VampireSweeper,             VampireSweeperParams),
     "ContrarianArbitrageur":     (ContrarianArbitrageur,      ContrarianArbitrageurParams),
+    "NominationFieldAdaptor":    (NominationFieldAdaptor,    NominationFieldAdaptorParams),
+    "VampireGambler":            (VampireGambler,             VampireGamblerParams),
+    # Ensemble (4-parent, context-weighted)
+    "ContextualEnsemble":        (ContextualEnsemble,         ContextualEnsembleParams),
 }
 
 

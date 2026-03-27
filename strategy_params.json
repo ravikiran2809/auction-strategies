@@ -8,11 +8,11 @@
       "depth_mult": 0.55
     },
     "evolved": {
-      "elite_cap": 0.3092947815858943,
-      "t1_solo_mult": 1.5198408449090206,
-      "t1_extra_mult": 1.710016913840076,
-      "t2_mult": 0.7117759359030139,
-      "depth_mult": 0.302871325853033
+      "elite_cap": 0.20469993020509264,
+      "t1_solo_mult": 3.9699979811344264,
+      "t1_extra_mult": 1.1130819768150846,
+      "t2_mult": 1.497323258528828,
+      "depth_mult": 0.3863734222853571
     }
   },
   "ValueInvestor": {
@@ -22,9 +22,9 @@
       "fair_base": 0.5
     },
     "evolved": {
-      "urgency_min": 0.9998284003043871,
-      "urgency_max": 1.713368501909228,
-      "fair_base": 0.9462042184839712
+      "urgency_min": 0.985466603582559,
+      "urgency_max": 1.8565734691356122,
+      "fair_base": 0.3671950128460218
     }
   },
   "DynamicMaximizer": {
@@ -34,9 +34,9 @@
       "exp_cap": 2.0
     },
     "evolved": {
-      "base_exp": 1.3950830023767111,
-      "exp_per_agent": 0.03783579716635157,
-      "exp_cap": 2.7847685518210277
+      "base_exp": 1.9950202038717557,
+      "exp_per_agent": 0.14978103936788187,
+      "exp_cap": 2.9696291623452282
     }
   },
   "ApexPredator": {
@@ -47,10 +47,10 @@
       "adj_max": 2.0
     },
     "evolved": {
-      "wc_discount": 0.9698021962625267,
-      "efficiency_exp": 1.000066126840342,
-      "adj_min": 1.1990099782725028,
-      "adj_max": 1.5247145720261353
+      "wc_discount": 0.9998420475627869,
+      "efficiency_exp": 2.306862552609587,
+      "adj_min": 1.0462964304662616,
+      "adj_max": 2.541703270687365
     }
   },
   "BarbellStrategist": {
@@ -63,12 +63,12 @@
       "base_exp": 1.55
     },
     "evolved": {
-      "hi_cost_threshold": 0.24582194209796504,
-      "lo_cost_threshold": 0.09411429388384557,
-      "hi_penalty_mult": 1.3129272719963732,
-      "lo_reward_mult": 0.5179960713615749,
-      "mid_penalty_mult": 0.10123647506283096,
-      "base_exp": 2.2997639710213034
+      "hi_cost_threshold": 0.25893090562943555,
+      "lo_cost_threshold": 0.0998269048017353,
+      "hi_penalty_mult": 1.9999981397138626,
+      "lo_reward_mult": 1.8676780473602967,
+      "mid_penalty_mult": 0.09609671867096445,
+      "base_exp": 2.332630255721045
     }
   },
   "VampireMaximizer": {
@@ -83,14 +83,14 @@
       "normal_mult": 0.9
     },
     "evolved": {
-      "shade_margin": 0.40672377300004314,
-      "bluff_floor_ratio": 0.38487837198387376,
-      "bluff_cap_ratio": 0.6473223468945286,
-      "purse_healthy_pct": 0.2123485909409029,
-      "min_slots_to_bluff": 2,
-      "elite_pts_threshold": 83.58933495928004,
-      "elite_mult": 1.898017829103157,
-      "normal_mult": 1.0249156542857656
+      "shade_margin": 0.4032024863166291,
+      "bluff_floor_ratio": 0.4052352139776942,
+      "bluff_cap_ratio": 0.4328902017694773,
+      "purse_healthy_pct": 0.31652315758518623,
+      "min_slots_to_bluff": 4,
+      "elite_pts_threshold": 95.2434047526914,
+      "elite_mult": 1.3513848084003641,
+      "normal_mult": 1.133647984939576
     }
   },
   "TierSniper": {
@@ -104,13 +104,13 @@
       "depth_mult": 0.65
     },
     "evolved": {
-      "t1_cap": 0.25533579304142057,
-      "t1_solo_mult": 3.3017537244193256,
-      "t1_price_enforce_mult": 0.8183683115676064,
-      "t1_sit_back_mult": 0.7105798312646125,
+      "t1_cap": 0.31042333121496674,
+      "t1_solo_mult": 3.773519039987224,
+      "t1_price_enforce_mult": 1.143955304817227,
+      "t1_sit_back_mult": 0.5408626920858371,
       "t1_enforce_when_remaining": 2,
-      "t2_mult": 1.2027267089734406,
-      "depth_mult": 0.43735871937416715
+      "t2_mult": 1.4428636164475532,
+      "depth_mult": 0.30086096154095715
     }
   },
   "NominationGambler": {
@@ -125,14 +125,14 @@
       "phase_c_exp": 2.0
     },
     "evolved": {
-      "phase_a_threshold": 4,
+      "phase_a_threshold": 5,
       "phase_b_threshold": 1,
-      "phase_a_t1_mult": 1.6901242968997114,
-      "phase_a_other_mult": 0.49733841691083536,
-      "phase_b_t1_exp": 2.499621209940936,
-      "phase_b_t2_mult": 1.0006321564283656,
-      "phase_b_depth_mult": 0.388277226480733,
-      "phase_c_exp": 2.223822562978133
+      "phase_a_t1_mult": 2.4991035331931006,
+      "phase_a_other_mult": 0.10115999136508272,
+      "phase_b_t1_exp": 1.2414945218576743,
+      "phase_b_t2_mult": 1.4929308095818292,
+      "phase_b_depth_mult": 0.3946867171052144,
+      "phase_c_exp": 2.6773667723249113
     }
   },
   "PositionalArbitrageur": {
@@ -147,14 +147,14 @@
       "premium_exp": 1.4
     },
     "evolved": {
-      "target_bat": 6,
+      "target_bat": 4,
       "target_bowl": 5,
       "target_ar": 2,
       "target_wk": 1,
-      "scarcity_cap": 3.745809845835279,
-      "filled_discount": 0.8747881285708095,
-      "scarcity_exp": 0.5434152999682784,
-      "premium_exp": 1.7985478714913157
+      "scarcity_cap": 1.785205838604714,
+      "filled_discount": 0.44837209645255827,
+      "scarcity_exp": 0.5433713913197747,
+      "premium_exp": 1.8761680260405766
     }
   },
   "BudgetSweeper": {
@@ -168,13 +168,13 @@
       "underspend_boost": 2.0
     },
     "evolved": {
-      "hoard_until": 0.40323545338827793,
-      "sweep_from": 0.218942589796536,
-      "hoard_mult": 0.4417121105358057,
-      "transition_mult": 0.7772105566862847,
-      "sweep_exp": 2.1605655728297903,
-      "sweep_boost": 1.430169495441079,
-      "underspend_boost": 2.4982908939933592
+      "hoard_until": 0.6412804104282167,
+      "sweep_from": 0.3125646649697112,
+      "hoard_mult": 0.17017466222238606,
+      "transition_mult": 0.6003731155539221,
+      "sweep_exp": 2.3029953800585705,
+      "sweep_boost": 1.3768877585716517,
+      "underspend_boost": 2.425502837219553
     }
   },
   "FieldAwareAdaptor": {
@@ -189,14 +189,14 @@
       "budget_urgency_scale": 1.3
     },
     "evolved": {
-      "advantage_threshold": 1.206215291635331,
-      "disadvantage_threshold": 0.8957450957672393,
-      "advantage_mult": 0.9759223284399309,
-      "parity_mult": 0.9028279705439298,
-      "disadvantage_mult": 1.4441678875669284,
-      "base_exp": 1.3993677654327625,
-      "t1_premium": 1.5573674690121897,
-      "budget_urgency_scale": 1.5778741926305755
+      "advantage_threshold": 1.0500079940215024,
+      "disadvantage_threshold": 0.8830412890496555,
+      "advantage_mult": 0.6021797662403566,
+      "parity_mult": 1.1423565249412517,
+      "disadvantage_mult": 1.0549312974618585,
+      "base_exp": 1.9982380833649973,
+      "t1_premium": 1.7965378232856395,
+      "budget_urgency_scale": 1.0555139439110763
     }
   },
   "ContrarianSnapper": {
@@ -212,13 +212,13 @@
     },
     "evolved": {
       "competition_threshold": 5,
-      "t1_contested_mult": 0.9068909914490121,
-      "t1_uncontested_mult": 2.097977468875969,
-      "t2_mult": 1.0496122966314974,
-      "t3_snap_mult": 0.9444663782679837,
-      "t3_min_pts": 79.91220720148375,
-      "late_pool_threshold": 0.2533491334275351,
-      "late_sweep_exp": 2.1165823132617345
+      "t1_contested_mult": 0.823704580798073,
+      "t1_uncontested_mult": 2.11200259459942,
+      "t2_mult": 1.2957981106149183,
+      "t3_snap_mult": 0.940662751863469,
+      "t3_min_pts": 78.239272117963,
+      "late_pool_threshold": 0.25457984734395445,
+      "late_sweep_exp": 1.836538504650301
     }
   },
   "FieldSniper": {
@@ -227,8 +227,8 @@
       "budget_kicker": 1.8
     },
     "evolved": {
-      "alpha": 0.8981779036801009,
-      "budget_kicker": 1.1290167894875331
+      "alpha": 0.5403977903970173,
+      "budget_kicker": 3.339008106953177
     }
   },
   "VampireSweeper": {
@@ -237,8 +237,8 @@
       "budget_kicker": 2.2
     },
     "evolved": {
-      "alpha": 0.7710584440841171,
-      "budget_kicker": 3.9760611190628685
+      "alpha": 0.8977438412471066,
+      "budget_kicker": 1.6356299273334036
     }
   },
   "ContrarianArbitrageur": {
@@ -247,8 +247,54 @@
       "budget_kicker": 1.6
     },
     "evolved": {
-      "alpha": 0.6803839215397408,
-      "budget_kicker": 3.867851197218838
+      "alpha": 0.8496482828714587,
+      "budget_kicker": 3.778622756605124
+    }
+  },
+  "NominationFieldAdaptor": {
+    "default": {
+      "alpha": 0.5,
+      "budget_kicker": 1.7
+    },
+    "evolved": {
+      "alpha": 0.8999033087375716,
+      "budget_kicker": 1.495072719657471
+    }
+  },
+  "VampireGambler": {
+    "default": {
+      "alpha": 0.6,
+      "budget_kicker": 1.9
+    },
+    "evolved": {
+      "alpha": 0.881770300298241,
+      "budget_kicker": 3.0946607754882414
+    }
+  },
+  "ContextualEnsemble": {
+    "default": {
+      "lw_field": 0.0,
+      "lw_vampire": 0.0,
+      "lw_gambler": 0.0,
+      "lw_positional": 0.0,
+      "early_gambler_boost": 1.5,
+      "late_field_boost": 1.4,
+      "late_vampire_boost": 1.2,
+      "t1_field_boost": 1.3,
+      "t1_vampire_boost": 1.1,
+      "budget_kicker": 1.5
+    },
+    "evolved": {
+      "lw_field": -1.6245499592336266,
+      "lw_vampire": -1.9663361154145997,
+      "lw_gambler": 1.9896322699871893,
+      "lw_positional": 0.12773535289813065,
+      "early_gambler_boost": 2.3331861900341435,
+      "late_field_boost": 2.8325458768378127,
+      "late_vampire_boost": 2.300914679978664,
+      "t1_field_boost": 1.5328289234914636,
+      "t1_vampire_boost": 1.5282555176026142,
+      "budget_kicker": 1.3249568992946612
     }
   }
 }

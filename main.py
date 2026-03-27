@@ -40,7 +40,7 @@ def _build_pool(args) -> list[dict]:
     if args.model == "recent":
         model = RecentFormModel(last_n_matches=args.last_n)
     else:
-        weights = _parse_season_weights(args.seasons) if args.seasons else {"2024": 1.0}
+        weights = _parse_season_weights(args.seasons) if args.seasons else {"2025": 1.0, "2024": 0.6}
         model = WeightedSeasonModel(weights)
 
     print(f"Building pool (model={args.model}, vorp={args.vorp_method}) …")
@@ -72,7 +72,7 @@ def cmd_build_pool(args):
 
 def cmd_simulate(args):
     from engine.export import load_pool, export_pool, export_insights
-    from engine.simulation import run_monte_carlo, print_mc_results
+    from engine.simulation import run_monte_carlo, print_mc_results, analyze_strategy_picks, print_strategy_insights
 
     if Path("player_pool.json").exists() and not args.rebuild:
         from engine.export import load_pool
@@ -87,6 +87,13 @@ def cmd_simulate(args):
     print_mc_results(results)
     out = export_insights(pool, results)
     print(f"  ✅ Insights saved → {out}")
+
+    if not args.no_insights:
+        print("\nRunning pick analysis (150 auctions) …")
+        pick_stats = analyze_strategy_picks(
+            pool, names, n=150, field_size=args.field_size, evolved=args.evolved
+        )
+        print_strategy_insights(pick_stats, results, pool)
 
 
 def cmd_evolve(args):
@@ -203,7 +210,7 @@ def main():
     bp.add_argument("--last-n", type=int, default=10,
                     help="Matches for RecentFormModel")
     bp.add_argument("--min-matches", type=int, default=5)
-    bp.add_argument("--pool-size", type=int, default=80)
+    bp.add_argument("--pool-size", type=int, default=130)
     bp.add_argument("--teams", type=int, default=6)
     bp.add_argument("--vorp-method", choices=["quantile", "depth"], default="quantile")
     bp.set_defaults(func=cmd_build_pool)
@@ -216,12 +223,13 @@ def main():
     sim.add_argument("--strategies", nargs="+", default=None, help="Strategy names (default: all)")
     sim.add_argument("--evolved", action="store_true", help="Use evolved params")
     sim.add_argument("--rebuild", action="store_true", help="Rebuild pool before simulating")
+    sim.add_argument("--no-insights", action="store_true", help="Skip player pick analysis")
     # Pool args (used when --rebuild)
     sim.add_argument("--model", choices=["weighted", "recent"], default="weighted")
     sim.add_argument("--seasons", type=str, default=None)
     sim.add_argument("--last-n", type=int, default=10)
     sim.add_argument("--min-matches", type=int, default=5)
-    sim.add_argument("--pool-size", type=int, default=80)
+    sim.add_argument("--pool-size", type=int, default=130)
     sim.add_argument("--teams", type=int, default=6)
     sim.add_argument("--vorp-method", choices=["quantile", "depth"], default="quantile")
     sim.set_defaults(func=cmd_simulate)

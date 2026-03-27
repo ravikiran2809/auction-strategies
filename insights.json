@@ -1,160 +1,190 @@
 {
-  "pool_size": 80,
+  "pool_size": 130,
   "tier_counts": {
-    "1": 13,
-    "2": 38,
-    "3": 29
+    "1": 36,
+    "2": 75,
+    "3": 19
   },
   "strategies": {
     "StarChaser": {
-      "win_share": 0.12,
-      "conditional_win_rate": 0.303,
-      "avg_score": 725.18,
-      "std_score": 152.89,
-      "wins": 60,
-      "participations": 198,
-      "total_auctions": 500,
-      "budget_utilization": 0.683
+      "win_share": 0.01,
+      "conditional_win_rate": 0.0375,
+      "avg_score": 718.53,
+      "std_score": 64.6,
+      "wins": 3,
+      "participations": 80,
+      "total_auctions": 300,
+      "budget_utilization": 0.949
     },
     "ValueInvestor": {
-      "win_share": 0.01,
-      "conditional_win_rate": 0.0254,
-      "avg_score": 561.85,
-      "std_score": 147.16,
+      "win_share": 0.0167,
+      "conditional_win_rate": 0.0459,
+      "avg_score": 724.16,
+      "std_score": 64.07,
       "wins": 5,
-      "participations": 197,
-      "total_auctions": 500,
-      "budget_utilization": 0.579
+      "participations": 109,
+      "total_auctions": 300,
+      "budget_utilization": 0.476
     },
     "DynamicMaximizer": {
-      "win_share": 0.042,
-      "conditional_win_rate": 0.1066,
-      "avg_score": 747.76,
-      "std_score": 72.9,
-      "wins": 21,
-      "participations": 197,
-      "total_auctions": 500,
-      "budget_utilization": 0.625
+      "win_share": 0.0033,
+      "conditional_win_rate": 0.0098,
+      "avg_score": 732.72,
+      "std_score": 46.4,
+      "wins": 1,
+      "participations": 102,
+      "total_auctions": 300,
+      "budget_utilization": 0.591
     },
     "ApexPredator": {
       "win_share": 0.0,
       "conditional_win_rate": 0.0,
-      "avg_score": 685.37,
-      "std_score": 33.63,
+      "avg_score": 606.16,
+      "std_score": 46.47,
       "wins": 0,
-      "participations": 206,
-      "total_auctions": 500,
-      "budget_utilization": 0.989
+      "participations": 105,
+      "total_auctions": 300,
+      "budget_utilization": 0.919
     },
     "BarbellStrategist": {
       "win_share": 0.0,
       "conditional_win_rate": 0.0,
-      "avg_score": 686.7,
-      "std_score": 36.24,
+      "avg_score": 560.02,
+      "std_score": 25.68,
       "wins": 0,
-      "participations": 211,
-      "total_auctions": 500,
-      "budget_utilization": 0.845
+      "participations": 108,
+      "total_auctions": 300,
+      "budget_utilization": 0.836
     },
     "VampireMaximizer": {
-      "win_share": 0.146,
-      "conditional_win_rate": 0.3578,
-      "avg_score": 802.29,
-      "std_score": 59.53,
-      "wins": 73,
-      "participations": 204,
-      "total_auctions": 500,
-      "budget_utilization": 0.84
+      "win_share": 0.1833,
+      "conditional_win_rate": 0.5,
+      "avg_score": 835.13,
+      "std_score": 36.17,
+      "wins": 55,
+      "participations": 110,
+      "total_auctions": 300,
+      "budget_utilization": 0.822
     },
     "TierSniper": {
-      "win_share": 0.016,
-      "conditional_win_rate": 0.0435,
-      "avg_score": 771.39,
-      "std_score": 19.97,
-      "wins": 8,
-      "participations": 184,
-      "total_auctions": 500,
-      "budget_utilization": 0.964
+      "win_share": 0.0,
+      "conditional_win_rate": 0.0,
+      "avg_score": 614.59,
+      "std_score": 29.07,
+      "wins": 0,
+      "participations": 110,
+      "total_auctions": 300,
+      "budget_utilization": 0.937
     },
     "NominationGambler": {
-      "win_share": 0.086,
-      "conditional_win_rate": 0.2337,
-      "avg_score": 699.83,
-      "std_score": 146.03,
-      "wins": 43,
-      "participations": 184,
-      "total_auctions": 500,
-      "budget_utilization": 0.688
+      "win_share": 0.23,
+      "conditional_win_rate": 0.7113,
+      "avg_score": 851.87,
+      "std_score": 26.94,
+      "wins": 69,
+      "participations": 97,
+      "total_auctions": 300,
+      "budget_utilization": 0.972
     },
     "PositionalArbitrageur": {
-      "win_share": 0.104,
-      "conditional_win_rate": 0.2488,
-      "avg_score": 746.62,
-      "std_score": 122.4,
-      "wins": 52,
-      "participations": 209,
-      "total_auctions": 500,
-      "budget_utilization": 0.679
+      "win_share": 0.0167,
+      "conditional_win_rate": 0.0602,
+      "avg_score": 750.22,
+      "std_score": 59.17,
+      "wins": 5,
+      "participations": 83,
+      "total_auctions": 300,
+      "budget_utilization": 0.602
     },
     "BudgetSweeper": {
       "win_share": 0.0,
       "conditional_win_rate": 0.0,
-      "avg_score": 692.58,
-      "std_score": 39.61,
+      "avg_score": 667.42,
+      "std_score": 51.11,
       "wins": 0,
-      "participations": 215,
-      "total_auctions": 500,
-      "budget_utilization": 0.636
+      "participations": 112,
+      "total_auctions": 300,
+      "budget_utilization": 0.716
     },
     "FieldAwareAdaptor": {
-      "win_share": 0.25,
-      "conditional_win_rate": 0.5708,
-      "avg_score": 803.85,
-      "std_score": 108.1,
-      "wins": 125,
-      "participations": 219,
-      "total_auctions": 500,
-      "budget_utilization": 0.836
+      "win_share": 0.06,
+      "conditional_win_rate": 0.1731,
+      "avg_score": 813.31,
+      "std_score": 51.13,
+      "wins": 18,
+      "participations": 104,
+      "total_auctions": 300,
+      "budget_utilization": 0.777
     },
     "ContrarianSnapper": {
-      "win_share": 0.064,
-      "conditional_win_rate": 0.1649,
-      "avg_score": 771.03,
-      "std_score": 58.21,
-      "wins": 32,
-      "participations": 194,
-      "total_auctions": 500,
-      "budget_utilization": 0.949
-    },
-    "FieldSniper": {
-      "win_share": 0.106,
-      "conditional_win_rate": 0.2944,
-      "avg_score": 796.0,
-      "std_score": 52.47,
-      "wins": 53,
-      "participations": 180,
-      "total_auctions": 500,
-      "budget_utilization": 0.767
-    },
-    "VampireSweeper": {
-      "win_share": 0.056,
-      "conditional_win_rate": 0.1366,
-      "avg_score": 773.1,
-      "std_score": 48.96,
-      "wins": 28,
-      "participations": 205,
-      "total_auctions": 500,
-      "budget_utilization": 0.837
-    },
-    "ContrarianArbitrageur": {
       "win_share": 0.0,
       "conditional_win_rate": 0.0,
-      "avg_score": 686.68,
-      "std_score": 28.09,
+      "avg_score": 653.93,
+      "std_score": 47.87,
       "wins": 0,
-      "participations": 197,
-      "total_auctions": 500,
-      "budget_utilization": 0.91
+      "participations": 100,
+      "total_auctions": 300,
+      "budget_utilization": 0.952
+    },
+    "FieldSniper": {
+      "win_share": 0.0,
+      "conditional_win_rate": 0.0,
+      "avg_score": 708.17,
+      "std_score": 50.91,
+      "wins": 0,
+      "participations": 96,
+      "total_auctions": 300,
+      "budget_utilization": 0.716
+    },
+    "VampireSweeper": {
+      "win_share": 0.0,
+      "conditional_win_rate": 0.0,
+      "avg_score": 708.22,
+      "std_score": 53.54,
+      "wins": 0,
+      "participations": 103,
+      "total_auctions": 300,
+      "budget_utilization": 0.665
+    },
+    "ContrarianArbitrageur": {
+      "win_share": 0.0067,
+      "conditional_win_rate": 0.0227,
+      "avg_score": 661.71,
+      "std_score": 63.39,
+      "wins": 2,
+      "participations": 88,
+      "total_auctions": 300,
+      "budget_utilization": 0.74
+    },
+    "NominationFieldAdaptor": {
+      "win_share": 0.15,
+      "conditional_win_rate": 0.4592,
+      "avg_score": 837.25,
+      "std_score": 35.48,
+      "wins": 45,
+      "participations": 98,
+      "total_auctions": 300,
+      "budget_utilization": 0.906
+    },
+    "VampireGambler": {
+      "win_share": 0.2,
+      "conditional_win_rate": 0.6818,
+      "avg_score": 855.19,
+      "std_score": 34.43,
+      "wins": 60,
+      "participations": 88,
+      "total_auctions": 300,
+      "budget_utilization": 0.893
+    },
+    "ContextualEnsemble": {
+      "win_share": 0.1233,
+      "conditional_win_rate": 0.3458,
+      "avg_score": 829.75,
+      "std_score": 38.14,
+      "wins": 37,
+      "participations": 107,
+      "total_auctions": 300,
+      "budget_utilization": 0.861
     }
   }
 }

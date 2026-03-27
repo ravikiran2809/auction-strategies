@@ -187,6 +187,170 @@ def print_mc_results(results: dict[str, MCResult]) -> None:
     print(f"\n  DOMINANT: {best.strategy} ({best.win_share*100:.2f}% win share, {best.conditional_win_rate*100:.2f}% per game)")
     print(f"  MOST WASTEFUL: {worst.strategy} ({(1-worst.budget_utilization)*100:.1f}% purse unspent)\n")
 
+
+# ── Strategic insights: player pick tracking ──────────────────────────────────
+def analyze_strategy_picks(
+    pool: list[dict],
+    strategy_names: list[str] | None = None,
+    n: int = 150,
+    *,
+    field_size: int = 6,
+    evolved: bool = False,
+    params_path: str | Path | None = None,
+) -> dict[str, dict]:
+    """
+    Run n independent auctions tracking which players each strategy buys.
+
+    Returns a dict keyed by strategy name, each value containing:
+      total_games  : int    — auctions the strategy participated in
+      picks        : Counter — player_name → number of times bought
+      prices       : dict   — player_name → list[float] of prices paid
+      pts          : dict   — player_name → projected_points
+    """
+    from collections import Counter
+    from .strategies import STRATEGY_REGISTRY, load_params, instantiate
+    from .auction import run_auction
+
+    names = strategy_names or list(STRATEGY_REGISTRY.keys())
+    stats: dict[str, dict] = {
+        name: {"auctions_in": 0, "picks": Counter(), "prices": {}, "pts": {}}
+        for name in names
+    }
+    stats["_meta"] = {"n_auctions": n}
+
+    for _ in range(n):
+        field = random.sample(names, min(field_size, len(names)))
+        agents = [
+            STRATEGY_REGISTRY[nm][0](
+                name=nm,
+                params=load_params(nm, params_path, evolved=evolved),
+            )
+            for nm in field
+        ]
+        log: list[dict] = []
+        run_auction([p.copy() for p in pool], agents, verbose=False, purchase_log=log)
+        for nm in field:
+            stats[nm]["auctions_in"] += 1
+        for entry in log:
+            s = stats[entry["strategy"]]
+            s["picks"][entry["player"]] += 1
+            s["prices"].setdefault(entry["player"], []).append(entry["price"])
+            s["pts"][entry["player"]] = entry["projected_points"]
+
+    return stats
+
+
+def print_strategy_insights(
+    pick_stats: dict[str, dict],
+    mc_results: dict[str, "MCResult"],
+    pool: list[dict],
+    *,
+    top_strategies: int = 5,
+    top_players: int = 8,
+) -> None:
+    """
+    Print three insight panels:
+      1. For each top strategy — most-targeted players, avg price vs base price
+      2. Value buys — high-quality players consistently bought below their VORP-implied price
+      3. Overlooked gems — high projected_points but low pick rate across all strategies
+    """
+    pool_map = {p["player_name"]: p for p in pool}
+    n_auctions: int = pick_stats.get("_meta", {}).get("n_auctions", 150)  # type: ignore[arg-type]
+
+    # Panel 1: Per-strategy player preferences
+    sorted_strats = sorted(
+        [s for s in pick_stats if s != "_meta" and s in mc_results],
+        key=lambda s: mc_results[s].win_share,
+        reverse=True,
+    )[:top_strategies]
+
+    print("\n" + "=" * 90)
+    print("  STRATEGIC INSIGHTS — How top strategies win")
+    print("=" * 90)
+
+    for name in sorted_strats:
+        st = pick_stats[name]
+        mc = mc_results[name]
+        auctions_in = max(1, st["auctions_in"])
+        if auctions_in == 0:
+            continue
+        print(f"\n  \u25b6 {name}  (WinShare={mc.win_share*100:.1f}%  WinRate/gm={mc.conditional_win_rate*100:.1f}%)")
+        print(f"    {'Player':<26} {'Role':<5} {'T':>2} {'Pick%':>6} {'AvgPrice':>9} {'Base':>6} {'Premium':>8}")
+        print("    " + "\u2500" * 67)
+        for pname, cnt in st["picks"].most_common(top_players):
+            pct = 100 * cnt / auctions_in
+            prices = st["prices"].get(pname, [])
+            avg_p = sum(prices) / len(prices) if prices else 0.0
+            p = pool_map.get(pname, {})
+            base = p.get("base_price", 1.0)
+            premium = 100 * (avg_p - base) / max(0.01, base)
+            star = " \u2605" if p.get("is_marquee") else ""
+            print(
+                f"    {pname + star:<26} {p.get('role','?'):<5} {p.get('tier','?'):>2}"
+                f" {pct:>5.1f}%  \u20b9{avg_p:>6.2f}Cr  \u20b9{base:>4.0f}Cr  {premium:>+7.0f}%"
+            )
+
+    # Global pick rates: denominator = n_auctions (player can be bought once per auction)
+    all_picks: dict[str, int] = {}
+    all_prices: dict[str, list[float]] = {}
+    for nm, st in pick_stats.items():
+        if nm == "_meta":
+            continue
+        for pname, cnt in st["picks"].items():
+            all_picks[pname] = all_picks.get(pname, 0) + cnt
+            all_prices.setdefault(pname, []).extend(st["prices"].get(pname, []))
+    # Cap per-player pick count at n_auctions (bought by exactly one team per auction)
+    all_picks = {k: min(v, n_auctions) for k, v in all_picks.items()}
+
+    # Panel 2: Value buys (T1/T2 players bought at low premium)
+    print("\n\n  \U0001f48e VALUE BUYS \u2014 quality players bought close to base price")
+    print(f"  {'Player':<26} {'Role':<5} {'T':>2} {'Pts':>6} {'BoughtIn%':>10} {'AvgPrice':>9} {'Base':>6}")
+    print("  " + "\u2500" * 69)
+    value_candidates = [
+        (pname, p) for pname, p in pool_map.items()
+        if p.get("tier", 3) <= 2
+        and all_picks.get(pname, 0) > 0
+    ]
+    value_candidates.sort(
+        key=lambda x: (
+            sum(all_prices.get(x[0], [x[1].get("base_price", 1)])) /
+            max(1, len(all_prices.get(x[0], [1])))
+        ) / max(0.01, x[1].get("base_price", 1))
+    )
+    for pname, p in value_candidates[:8]:
+        prices = all_prices.get(pname, [p.get("base_price", 1.0)])
+        avg_p = sum(prices) / len(prices)
+        bought_pct = 100 * all_picks.get(pname, 0) / n_auctions
+        star = " \u2605" if p.get("is_marquee") else ""
+        print(
+            f"  {pname + star:<26} {p.get('role','?'):<5} {p.get('tier','?'):>2}"
+            f" {p['projected_points']:>6.1f} {bought_pct:>9.1f}%  \u20b9{avg_p:>6.2f}Cr  \u20b9{p.get('base_price',1):>4.0f}Cr"
+        )
+
+    # Panel 3: Overlooked gems (high pts, low BoughtIn%)
+    print("\n\n  \U0001f50d OVERLOOKED GEMS \u2014 high quality, low competition")
+    print(f"  {'Player':<26} {'Role':<5} {'T':>2} {'Pts':>6} {'BoughtIn%':>10} {'AvgPrice':>9}")
+    print("  " + "\u2500" * 62)
+    overlooked = [
+        (pname, p) for pname, p in pool_map.items()
+        if p.get("tier", 3) <= 2
+    ]
+    overlooked.sort(
+        key=lambda x: (
+            all_picks.get(x[0], 0) / n_auctions - x[1]["projected_points"] / 200
+        )
+    )
+    for pname, p in overlooked[:8]:
+        prices = all_prices.get(pname, [])
+        avg_p = sum(prices) / len(prices) if prices else p.get("base_price", 1.0)
+        bought_pct = 100 * all_picks.get(pname, 0) / n_auctions
+        star = " \u2605" if p.get("is_marquee") else ""
+        print(
+            f"  {pname + star:<26} {p.get('role','?'):<5} {p.get('tier','?'):>2}"
+            f" {p['projected_points']:>6.1f} {bought_pct:>9.1f}%  \u20b9{avg_p:>6.2f}Cr"
+        )
+    print()
+
 def _theoretical_max(pool: list[dict]) -> float:
     """Sum of top-11 projected_points — same as season_score() ceiling."""
     return sum(sorted((p["projected_points"] for p in pool), reverse=True)[:11])

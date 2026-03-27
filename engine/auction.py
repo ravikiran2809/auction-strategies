@@ -26,6 +26,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .strategies import Manager
 
+from .pool import order_pool
+
 BID_INCREMENT = 0.25
 MIN_BID = 0.5
 NOISE_LO = -0.25
@@ -43,7 +45,7 @@ def build_state(agents: list["Manager"], remaining: list[dict]) -> dict:
       agent_states       dict[name, {purse, slots, mandatory, name}]
     """
     avail = sum(
-        max(0.0, a.purse - 0.5 * max(0, a.mandatory - 1)) for a in agents
+        max(0.0, a.purse - 1.0 * max(0, a.mandatory - 1)) for a in agents
     )
     rem_vorp = sum(p.get("vorp", 0.0) for p in remaining)
     return {
@@ -73,6 +75,7 @@ def run_auction(
     pool: list[dict],
     agents: list["Manager"],
     verbose: bool = True,
+    purchase_log: list[dict] | None = None,
 ) -> list[dict]:
     """
     Run a full ascending-bid auction.
@@ -88,8 +91,10 @@ def run_auction(
     for agent in agents:
         agent.reset()
 
-    lot_pool = list(pool)
-    random.shuffle(lot_pool)
+    # Round 1: IPL-realistic set ordering (BAT→AR→WK→BOWL, capped first,
+    # randomised within each base-price bracket of ~4 players).
+    # Re-entry rounds (2+) use a simple shuffle — the real IPL accelerated auction.
+    lot_pool = order_pool(list(pool))
     unsold: list[dict] = []
     rnd = 1
 
@@ -104,7 +109,8 @@ def run_auction(
         for player in current_lots:
             remaining = current_lots + unsold + lot_pool
             state = build_state(agents, remaining)
-            active = [a for a in agents if a.slots > 0 and a.max_bid >= MIN_BID]
+            floor = player.get("base_price", MIN_BID)  # tier-based bid floor
+            active = [a for a in agents if a.slots > 0 and a.max_bid >= floor]
 
             # Compute WTP for each active agent (with noise)
             wtp: dict[str, float] = {}
@@ -113,13 +119,13 @@ def run_auction(
                 noise = random.uniform(NOISE_LO, NOISE_HI) if raw > MIN_BID else 0.0
                 wtp[a.name] = min(raw + noise, a.max_bid)
 
-            if not any(v >= MIN_BID for v in wtp.values()):
+            if not any(v >= floor for v in wtp.values()):
                 unsold.append(player)
                 if verbose:
                     print(f"  ⛔ UNSOLD  {player['player_name']:<22} ({player['role']})")
                 continue
 
-            # Ascending bid loop
+            # Ascending bid loop — starts at tier base price
             bid = 0.0
             winner: str | None = None
             going = True
@@ -128,7 +134,7 @@ def run_auction(
                 for a in random.sample(active, len(active)):
                     if a.name == winner:
                         continue
-                    ask = bid + BID_INCREMENT if winner else MIN_BID
+                    ask = bid + BID_INCREMENT if winner else floor
                     if wtp[a.name] >= ask and ask <= a.max_bid:
                         bid, winner, going = ask, a.name, True
                         break
@@ -136,6 +142,16 @@ def run_auction(
             assert winner is not None
             winning_agent = next(a for a in agents if a.name == winner)
             winning_agent.buy(player, bid)
+            if purchase_log is not None:
+                purchase_log.append({
+                    "strategy": winner,
+                    "player": player["player_name"],
+                    "role": player["role"],
+                    "tier": player.get("tier", 3),
+                    "price": bid,
+                    "base_price": player.get("base_price", 1.0),
+                    "projected_points": player["projected_points"],
+                })
             bought += 1
 
             if verbose:
@@ -155,8 +171,10 @@ def run_auction(
 
         if bought == 0:
             break
-        # If any agent is still short of min_roster and there are unsold players, re-run
+        # If any agent is still short of min_roster and there are unsold players, re-run.
+        # Round 2+ = accelerated auction: randomise unsold order (real IPL practice).
         if any(a.mandatory > 0 for a in agents) and unsold:
+            random.shuffle(unsold)
             lot_pool.extend(unsold)
             unsold = []
             rnd += 1
