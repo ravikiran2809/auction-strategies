@@ -1,0 +1,73 @@
+{
+  "pool_size": 80,
+  "tier_counts": {
+    "1": 15,
+    "2": 37,
+    "3": 28
+  },
+  "strategies": {
+    "StarChaser": {
+      "win_rate": 0.524,
+      "avg_score": 714.93,
+      "std_score": 89.59,
+      "wins": 524,
+      "runs": 1000
+    },
+    "ValueInvestor": {
+      "win_rate": 0.161,
+      "avg_score": 678.67,
+      "std_score": 68.93,
+      "wins": 161,
+      "runs": 1000
+    },
+    "DynamicMaximizer": {
+      "win_rate": 0.0,
+      "avg_score": 200.61,
+      "std_score": 48.52,
+      "wins": 0,
+      "runs": 1000
+    },
+    "ApexPredator": {
+      "win_rate": 0.0,
+      "avg_score": 586.27,
+      "std_score": 52.5,
+      "wins": 0,
+      "runs": 1000
+    },
+    "BarbellStrategist": {
+      "win_rate": 0.0,
+      "avg_score": 634.39,
+      "std_score": 52.37,
+      "wins": 0,
+      "runs": 1000
+    },
+    "VampireMaximizer": {
+      "win_rate": 0.055,
+      "avg_score": 615.83,
+      "std_score": 96.06,
+      "wins": 55,
+      "runs": 1000
+    },
+    "TierSniper": {
+      "win_rate": 0.238,
+      "avg_score": 708.96,
+      "std_score": 65.32,
+      "wins": 238,
+      "runs": 1000
+    },
+    "NominationGambler": {
+      "win_rate": 0.022,
+      "avg_score": 548.81,
+      "std_score": 99.33,
+      "wins": 22,
+      "runs": 1000
+    },
+    "PositionalArbitrageur": {
+      "win_rate": 0.0,
+      "avg_score": 317.45,
+      "std_score": 86.9,
+      "wins": 0,
+      "runs": 1000
+    }
+  }
+}

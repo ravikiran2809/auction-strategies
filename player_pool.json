@@ -1,0 +1,723 @@
+[
+  {
+    "player_name": "SP Narine",
+    "role": "AR",
+    "projected_points": 143.5,
+    "std_dev": 81.0,
+    "vorp": 69.1,
+    "tier": 1,
+    "matches": 14
+  },
+  {
+    "player_name": "M Pathirana",
+    "role": "BOWL",
+    "projected_points": 123.3,
+    "std_dev": 80.5,
+    "vorp": 77.9,
+    "tier": 1,
+    "matches": 6
+  },
+  {
+    "player_name": "JJ Bumrah",
+    "role": "BOWL",
+    "projected_points": 114.1,
+    "std_dev": 119.5,
+    "vorp": 68.7,
+    "tier": 1,
+    "matches": 13
+  },
+  {
+    "player_name": "AD Russell",
+    "role": "AR",
+    "projected_points": 97.4,
+    "std_dev": 67.8,
+    "vorp": 23.0,
+    "tier": 1,
+    "matches": 14
+  },
+  {
+    "player_name": "V Kohli",
+    "role": "BAT",
+    "projected_points": 96.9,
+    "std_dev": 60.4,
+    "vorp": 63.0,
+    "tier": 1,
+    "matches": 15
+  },
+  {
+    "player_name": "HV Patel",
+    "role": "BOWL",
+    "projected_points": 95.4,
+    "std_dev": 75.8,
+    "vorp": 50.0,
+    "tier": 1,
+    "matches": 14
+  },
+  {
+    "player_name": "Mukesh Kumar",
+    "role": "BOWL",
+    "projected_points": 93.8,
+    "std_dev": 73.8,
+    "vorp": 48.4,
+    "tier": 1,
+    "matches": 10
+  },
+  {
+    "player_name": "SM Curran",
+    "role": "AR",
+    "projected_points": 86.2,
+    "std_dev": 58.1,
+    "vorp": 11.8,
+    "tier": 1,
+    "matches": 13
+  },
+  {
+    "player_name": "PD Salt",
+    "role": "BAT",
+    "projected_points": 84.8,
+    "std_dev": 66.0,
+    "vorp": 50.9,
+    "tier": 1,
+    "matches": 12
+  },
+  {
+    "player_name": "CV Varun",
+    "role": "BOWL",
+    "projected_points": 84.6,
+    "std_dev": 70.8,
+    "vorp": 39.2,
+    "tier": 1,
+    "matches": 14
+  },
+  {
+    "player_name": "Harshit Rana",
+    "role": "BOWL",
+    "projected_points": 83.3,
+    "std_dev": 71.2,
+    "vorp": 37.9,
+    "tier": 1,
+    "matches": 12
+  },
+  {
+    "player_name": "Sandeep Sharma",
+    "role": "BOWL",
+    "projected_points": 82.0,
+    "std_dev": 116.7,
+    "vorp": 36.6,
+    "tier": 1,
+    "matches": 10
+  },
+  {
+    "player_name": "Kuldeep Yadav",
+    "role": "BOWL",
+    "projected_points": 81.8,
+    "std_dev": 70.4,
+    "vorp": 36.4,
+    "tier": 1,
+    "matches": 11
+  },
+  {
+    "player_name": "Mustafizur Rahman",
+    "role": "BOWL",
+    "projected_points": 81.7,
+    "std_dev": 67.8,
+    "vorp": 36.3,
+    "tier": 1,
+    "matches": 9
+  },
+  {
+    "player_name": "AR Patel",
+    "role": "AR",
+    "projected_points": 80.6,
+    "std_dev": 52.7,
+    "vorp": 6.2,
+    "tier": 1,
+    "matches": 14
+  },
+  {
+    "player_name": "R Sai Kishore",
+    "role": "BAT",
+    "projected_points": 78.4,
+    "std_dev": 86.1,
+    "vorp": 44.5,
+    "tier": 2,
+    "matches": 5
+  },
+  {
+    "player_name": "RA Jadeja",
+    "role": "AR",
+    "projected_points": 75.7,
+    "std_dev": 83.5,
+    "vorp": 1.3,
+    "tier": 2,
+    "matches": 14
+  },
+  {
+    "player_name": "J Fraser-McGurk",
+    "role": "BAT",
+    "projected_points": 75.3,
+    "std_dev": 55.1,
+    "vorp": 41.4,
+    "tier": 2,
+    "matches": 10
+  },
+  {
+    "player_name": "PJ Cummins",
+    "role": "BOWL",
+    "projected_points": 74.8,
+    "std_dev": 49.5,
+    "vorp": 29.4,
+    "tier": 2,
+    "matches": 16
+  },
+  {
+    "player_name": "N Pooran",
+    "role": "BAT",
+    "projected_points": 74.4,
+    "std_dev": 51.7,
+    "vorp": 40.5,
+    "tier": 2,
+    "matches": 14
+  },
+  {
+    "player_name": "C Green",
+    "role": "AR",
+    "projected_points": 74.4,
+    "std_dev": 61.8,
+    "vorp": 0.0,
+    "tier": 2,
+    "matches": 13
+  },
+  {
+    "player_name": "MA Starc",
+    "role": "BOWL",
+    "projected_points": 72.3,
+    "std_dev": 86.3,
+    "vorp": 26.9,
+    "tier": 2,
+    "matches": 13
+  },
+  {
+    "player_name": "RR Pant",
+    "role": "BAT",
+    "projected_points": 72.1,
+    "std_dev": 52.0,
+    "vorp": 38.2,
+    "tier": 2,
+    "matches": 13
+  },
+  {
+    "player_name": "B Sai Sudharsan",
+    "role": "BAT",
+    "projected_points": 71.6,
+    "std_dev": 60.5,
+    "vorp": 37.7,
+    "tier": 2,
+    "matches": 12
+  },
+  {
+    "player_name": "T Natarajan",
+    "role": "BOWL",
+    "projected_points": 71.1,
+    "std_dev": 90.1,
+    "vorp": 25.7,
+    "tier": 2,
+    "matches": 14
+  },
+  {
+    "player_name": "Abhishek Sharma",
+    "role": "BAT",
+    "projected_points": 70.9,
+    "std_dev": 54.3,
+    "vorp": 37.0,
+    "tier": 2,
+    "matches": 16
+  },
+  {
+    "player_name": "RD Gaikwad",
+    "role": "BAT",
+    "projected_points": 70.5,
+    "std_dev": 66.1,
+    "vorp": 36.6,
+    "tier": 2,
+    "matches": 14
+  },
+  {
+    "player_name": "KL Rahul",
+    "role": "BAT",
+    "projected_points": 69.1,
+    "std_dev": 45.9,
+    "vorp": 35.2,
+    "tier": 2,
+    "matches": 14
+  },
+  {
+    "player_name": "R Parag",
+    "role": "BAT",
+    "projected_points": 68.9,
+    "std_dev": 50.3,
+    "vorp": 35.0,
+    "tier": 2,
+    "matches": 15
+  },
+  {
+    "player_name": "TM Head",
+    "role": "BAT",
+    "projected_points": 68.3,
+    "std_dev": 74.0,
+    "vorp": 34.4,
+    "tier": 2,
+    "matches": 15
+  },
+  {
+    "player_name": "RD Chahar",
+    "role": "BOWL",
+    "projected_points": 66.2,
+    "std_dev": 86.4,
+    "vorp": 20.8,
+    "tier": 2,
+    "matches": 9
+  },
+  {
+    "player_name": "SV Samson",
+    "role": "BAT",
+    "projected_points": 65.8,
+    "std_dev": 61.0,
+    "vorp": 31.9,
+    "tier": 2,
+    "matches": 15
+  },
+  {
+    "player_name": "Avesh Khan",
+    "role": "BOWL",
+    "projected_points": 65.4,
+    "std_dev": 61.7,
+    "vorp": 20.0,
+    "tier": 2,
+    "matches": 15
+  },
+  {
+    "player_name": "Rashid Khan",
+    "role": "BOWL",
+    "projected_points": 65.3,
+    "std_dev": 41.8,
+    "vorp": 19.9,
+    "tier": 2,
+    "matches": 12
+  },
+  {
+    "player_name": "N Burger",
+    "role": "BAT",
+    "projected_points": 65.0,
+    "std_dev": 23.5,
+    "vorp": 31.1,
+    "tier": 2,
+    "matches": 5
+  },
+  {
+    "player_name": "TU Deshpande",
+    "role": "BOWL",
+    "projected_points": 64.6,
+    "std_dev": 75.0,
+    "vorp": 19.2,
+    "tier": 2,
+    "matches": 13
+  },
+  {
+    "player_name": "MP Stoinis",
+    "role": "BAT",
+    "projected_points": 64.6,
+    "std_dev": 67.2,
+    "vorp": 30.7,
+    "tier": 2,
+    "matches": 14
+  },
+  {
+    "player_name": "Tilak Varma",
+    "role": "BAT",
+    "projected_points": 64.5,
+    "std_dev": 40.4,
+    "vorp": 30.6,
+    "tier": 2,
+    "matches": 13
+  },
+  {
+    "player_name": "PP Chawla",
+    "role": "BOWL",
+    "projected_points": 64.4,
+    "std_dev": 69.5,
+    "vorp": 19.0,
+    "tier": 2,
+    "matches": 11
+  },
+  {
+    "player_name": "N Thushara",
+    "role": "BOWL",
+    "projected_points": 64.3,
+    "std_dev": 92.3,
+    "vorp": 18.9,
+    "tier": 2,
+    "matches": 7
+  },
+  {
+    "player_name": "T Stubbs",
+    "role": "BAT",
+    "projected_points": 63.9,
+    "std_dev": 56.7,
+    "vorp": 30.0,
+    "tier": 2,
+    "matches": 14
+  },
+  {
+    "player_name": "S Sandeep Warrier",
+    "role": "BAT",
+    "projected_points": 63.0,
+    "std_dev": 84.7,
+    "vorp": 29.1,
+    "tier": 2,
+    "matches": 5
+  },
+  {
+    "player_name": "Naveen-ul-Haq",
+    "role": "BOWL",
+    "projected_points": 62.7,
+    "std_dev": 47.7,
+    "vorp": 17.3,
+    "tier": 2,
+    "matches": 10
+  },
+  {
+    "player_name": "WG Jacks",
+    "role": "BAT",
+    "projected_points": 62.1,
+    "std_dev": 71.6,
+    "vorp": 28.2,
+    "tier": 2,
+    "matches": 8
+  },
+  {
+    "player_name": "F du Plessis",
+    "role": "BAT",
+    "projected_points": 61.1,
+    "std_dev": 46.7,
+    "vorp": 27.2,
+    "tier": 2,
+    "matches": 15
+  },
+  {
+    "player_name": "TA Boult",
+    "role": "BOWL",
+    "projected_points": 60.7,
+    "std_dev": 63.0,
+    "vorp": 15.3,
+    "tier": 2,
+    "matches": 15
+  },
+  {
+    "player_name": "SA Yadav",
+    "role": "BAT",
+    "projected_points": 60.6,
+    "std_dev": 76.5,
+    "vorp": 26.7,
+    "tier": 2,
+    "matches": 11
+  },
+  {
+    "player_name": "Yash Thakur",
+    "role": "BOWL",
+    "projected_points": 60.0,
+    "std_dev": 134.9,
+    "vorp": 14.6,
+    "tier": 2,
+    "matches": 10
+  },
+  {
+    "player_name": "H Klaasen",
+    "role": "BAT",
+    "projected_points": 59.6,
+    "std_dev": 59.4,
+    "vorp": 25.7,
+    "tier": 2,
+    "matches": 16
+  },
+  {
+    "player_name": "LS Livingstone",
+    "role": "BAT",
+    "projected_points": 59.0,
+    "std_dev": 56.2,
+    "vorp": 25.1,
+    "tier": 2,
+    "matches": 7
+  },
+  {
+    "player_name": "KK Ahmed",
+    "role": "BOWL",
+    "projected_points": 58.6,
+    "std_dev": 54.6,
+    "vorp": 13.2,
+    "tier": 2,
+    "matches": 14
+  },
+  {
+    "player_name": "G Coetzee",
+    "role": "BOWL",
+    "projected_points": 58.1,
+    "std_dev": 80.7,
+    "vorp": 12.7,
+    "tier": 2,
+    "matches": 10
+  },
+  {
+    "player_name": "YS Chahal",
+    "role": "BOWL",
+    "projected_points": 58.0,
+    "std_dev": 58.0,
+    "vorp": 12.6,
+    "tier": 3,
+    "matches": 15
+  },
+  {
+    "player_name": "RR Rossouw",
+    "role": "BAT",
+    "projected_points": 57.9,
+    "std_dev": 52.2,
+    "vorp": 24.0,
+    "tier": 3,
+    "matches": 8
+  },
+  {
+    "player_name": "HH Pandya",
+    "role": "AR",
+    "projected_points": 65.1,
+    "std_dev": 52.5,
+    "vorp": 0.0,
+    "tier": 2,
+    "matches": 14,
+    "override_note": ""
+  },
+  {
+    "player_name": "S Dube",
+    "role": "BAT",
+    "projected_points": 57.1,
+    "std_dev": 48.1,
+    "vorp": 23.2,
+    "tier": 3,
+    "matches": 14
+  },
+  {
+    "player_name": "Arshdeep Singh",
+    "role": "BOWL",
+    "projected_points": 56.8,
+    "std_dev": 60.9,
+    "vorp": 11.4,
+    "tier": 3,
+    "matches": 14
+  },
+  {
+    "player_name": "Shubman Gill",
+    "role": "BAT",
+    "projected_points": 56.5,
+    "std_dev": 67.7,
+    "vorp": 22.6,
+    "tier": 3,
+    "matches": 12
+  },
+  {
+    "player_name": "I Sharma",
+    "role": "BOWL",
+    "projected_points": 55.7,
+    "std_dev": 64.1,
+    "vorp": 10.3,
+    "tier": 3,
+    "matches": 9
+  },
+  {
+    "player_name": "LH Ferguson",
+    "role": "BOWL",
+    "projected_points": 55.1,
+    "std_dev": 48.3,
+    "vorp": 9.7,
+    "tier": 3,
+    "matches": 7
+  },
+  {
+    "player_name": "RM Patidar",
+    "role": "BAT",
+    "projected_points": 55.1,
+    "std_dev": 51.6,
+    "vorp": 21.2,
+    "tier": 3,
+    "matches": 15
+  },
+  {
+    "player_name": "JM Bairstow",
+    "role": "BAT",
+    "projected_points": 54.5,
+    "std_dev": 66.4,
+    "vorp": 20.6,
+    "tier": 3,
+    "matches": 11
+  },
+  {
+    "player_name": "K Rabada",
+    "role": "BOWL",
+    "projected_points": 54.5,
+    "std_dev": 43.9,
+    "vorp": 9.1,
+    "tier": 3,
+    "matches": 11
+  },
+  {
+    "player_name": "YBK Jaiswal",
+    "role": "BAT",
+    "projected_points": 54.1,
+    "std_dev": 56.1,
+    "vorp": 20.2,
+    "tier": 3,
+    "matches": 15
+  },
+  {
+    "player_name": "JC Buttler",
+    "role": "BAT",
+    "projected_points": 54.0,
+    "std_dev": 77.1,
+    "vorp": 20.1,
+    "tier": 3,
+    "matches": 11
+  },
+  {
+    "player_name": "Yash Dayal",
+    "role": "BOWL",
+    "projected_points": 53.2,
+    "std_dev": 62.7,
+    "vorp": 7.8,
+    "tier": 3,
+    "matches": 14
+  },
+  {
+    "player_name": "RG Sharma",
+    "role": "BAT",
+    "projected_points": 53.1,
+    "std_dev": 61.0,
+    "vorp": 19.2,
+    "tier": 3,
+    "matches": 14
+  },
+  {
+    "player_name": "SS Iyer",
+    "role": "BAT",
+    "projected_points": 52.4,
+    "std_dev": 38.2,
+    "vorp": 18.5,
+    "tier": 3,
+    "matches": 14
+  },
+  {
+    "player_name": "VR Iyer",
+    "role": "BAT",
+    "projected_points": 52.0,
+    "std_dev": 47.2,
+    "vorp": 18.1,
+    "tier": 3,
+    "matches": 14
+  },
+  {
+    "player_name": "VG Arora",
+    "role": "BOWL",
+    "projected_points": 51.6,
+    "std_dev": 62.1,
+    "vorp": 6.2,
+    "tier": 3,
+    "matches": 10
+  },
+  {
+    "player_name": "Mohammed Siraj",
+    "role": "BOWL",
+    "projected_points": 51.5,
+    "std_dev": 51.2,
+    "vorp": 6.1,
+    "tier": 3,
+    "matches": 14
+  },
+  {
+    "player_name": "DA Miller",
+    "role": "BAT",
+    "projected_points": 51.2,
+    "std_dev": 40.2,
+    "vorp": 17.3,
+    "tier": 3,
+    "matches": 9
+  },
+  {
+    "player_name": "Shashank Singh",
+    "role": "BAT",
+    "projected_points": 51.0,
+    "std_dev": 48.5,
+    "vorp": 17.1,
+    "tier": 3,
+    "matches": 14
+  },
+  {
+    "player_name": "Rasikh Salam",
+    "role": "BOWL",
+    "projected_points": 50.9,
+    "std_dev": 86.3,
+    "vorp": 5.5,
+    "tier": 3,
+    "matches": 8
+  },
+  {
+    "player_name": "R Ravindra",
+    "role": "BAT",
+    "projected_points": 50.3,
+    "std_dev": 50.9,
+    "vorp": 16.4,
+    "tier": 3,
+    "matches": 10
+  },
+  {
+    "player_name": "Nithish Kumar Reddy",
+    "role": "BAT",
+    "projected_points": 50.0,
+    "std_dev": 61.7,
+    "vorp": 16.1,
+    "tier": 3,
+    "matches": 13
+  },
+  {
+    "player_name": "RA Tripathi",
+    "role": "BAT",
+    "projected_points": 50.0,
+    "std_dev": 49.4,
+    "vorp": 16.1,
+    "tier": 3,
+    "matches": 6
+  },
+  {
+    "player_name": "Akash Madhwal",
+    "role": "BAT",
+    "projected_points": 49.8,
+    "std_dev": 97.3,
+    "vorp": 15.9,
+    "tier": 3,
+    "matches": 5
+  },
+  {
+    "player_name": "DJ Mitchell",
+    "role": "BAT",
+    "projected_points": 49.6,
+    "std_dev": 42.6,
+    "vorp": 15.7,
+    "tier": 3,
+    "matches": 13
+  },
+  {
+    "player_name": "Swapnil Singh",
+    "role": "BAT",
+    "projected_points": 49.4,
+    "std_dev": 29.8,
+    "vorp": 15.5,
+    "tier": 3,
+    "matches": 7
+  }
+]

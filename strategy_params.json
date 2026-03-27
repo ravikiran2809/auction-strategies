@@ -1,0 +1,90 @@
+{
+  "StarChaser": {
+    "default": {
+      "elite_cap": 0.35,
+      "t1_solo_mult": 2.4,
+      "t1_extra_mult": 1.2,
+      "t2_mult": 1.0,
+      "depth_mult": 0.55
+    }
+  },
+  "ValueInvestor": {
+    "default": {
+      "urgency_min": 0.85,
+      "urgency_max": 1.35,
+      "fair_base": 0.5
+    }
+  },
+  "DynamicMaximizer": {
+    "default": {
+      "base_exp": 1.4,
+      "exp_per_agent": 0.07,
+      "exp_cap": 2.0
+    }
+  },
+  "ApexPredator": {
+    "default": {
+      "wc_discount": 0.90,
+      "efficiency_exp": 1.5,
+      "adj_min": 0.8,
+      "adj_max": 2.0
+    }
+  },
+  "BarbellStrategist": {
+    "default": {
+      "hi_cost_threshold": 0.15,
+      "lo_cost_threshold": 0.05,
+      "hi_penalty_mult": 1.0,
+      "lo_reward_mult": 1.0,
+      "mid_penalty_mult": 0.25,
+      "base_exp": 1.6
+    }
+  },
+  "VampireMaximizer": {
+    "default": {
+      "shade_margin": 0.5,
+      "bluff_floor_ratio": 0.40,
+      "bluff_cap_ratio": 0.60,
+      "purse_healthy_pct": 0.40,
+      "min_slots_to_bluff": 4,
+      "elite_pts_threshold": 90.0,
+      "elite_mult": 1.4,
+      "normal_mult": 0.9
+    }
+  },
+  "TierSniper": {
+    "default": {
+      "t1_cap": 0.45,
+      "t1_solo_mult": 2.8,
+      "t1_price_enforce_mult": 1.05,
+      "t1_sit_back_mult": 0.5,
+      "t1_enforce_when_remaining": 3,
+      "t2_mult": 1.1,
+      "depth_mult": 0.65
+    }
+  },
+  "NominationGambler": {
+    "default": {
+      "phase_a_threshold": 8,
+      "phase_b_threshold": 3,
+      "phase_a_t1_mult": 1.5,
+      "phase_a_other_mult": 0.25,
+      "phase_b_t1_exp": 1.5,
+      "phase_b_t2_mult": 0.9,
+      "phase_b_depth_mult": 0.40,
+      "phase_c_exp": 2.0
+    }
+  },
+  "PositionalArbitrageur": {
+    "default": {
+      "target_bat": 5,
+      "target_bowl": 4,
+      "target_ar": 2,
+      "target_wk": 2,
+      "scarcity_cap": 2.5,
+      "filled_discount": 0.7,
+      "scarcity_exp": 0.8,
+      "premium_exp": 1.4
+    }
+  }
+}
