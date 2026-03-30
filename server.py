@@ -121,15 +121,20 @@ def get_strategies():
         evo_history = evolved.get(name, {})
 
         strategy_data.append({
-            "name":           name,
-            "default_params": default_p.to_dict(),
-            "evolved_params": evolved_p_dict,
-            "win_rate":       mc.get("win_rate"),
-            "avg_score":      mc.get("avg_score"),
-            "std_score":      mc.get("std_score"),
-            "wins":           mc.get("wins"),
-            "runs":           mc.get("runs"),
-            "has_evolved":    evolved_p_dict is not None,
+            "name":                  name,
+            "default_params":        default_p.to_dict(),
+            "evolved_params":        evolved_p_dict,
+            # insights.json stores win_share; expose as win_rate so UI reads it correctly
+            "win_rate":              mc.get("win_share"),
+            "win_share":             mc.get("win_share"),
+            "conditional_win_rate": mc.get("conditional_win_rate"),
+            "avg_score":             mc.get("avg_score"),
+            "std_score":             mc.get("std_score"),
+            "wins":                  mc.get("wins"),
+            "participations":        mc.get("participations"),
+            "total_auctions":        mc.get("total_auctions"),
+            "runs":                  mc.get("runs"),
+            "has_evolved":           evolved_p_dict is not None,
             "evo_history":    {
                 algo: d.get("fitness_history", [])
                 for algo, d in evo_history.items()
@@ -188,8 +193,8 @@ def get_playbook(strategy: str = "TierSniper", evolved: bool = False):
     t3_count = sum(1 for pl in pool if pl.get("tier") == 3)
     avg_pts  = sum(pl["projected_points"] for pl in pool) / len(pool) if pool else 80
 
-    # Rough illustrative bid ceilings at default purse/slots (120/15 = ₹8/slot)
-    cash_per_slot = 120.0 / 15
+    # Rough illustrative bid ceilings at default purse/slots (120/16 = ₹7.5/slot)
+    cash_per_slot = 120.0 / 16
 
     advice: dict = {
         "strategy": strategy,

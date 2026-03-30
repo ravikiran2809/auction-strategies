@@ -207,16 +207,18 @@
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#f59e0b" stroke-width="1.5"/><path d="M8 12h8M12 8v8" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/></svg>
     <div class="topbar-title">IPL Auction <span>Advisor</span></div>
     <div style="display:flex;gap:12px;align-items:center">
-      <span style="font-size:11px;color:var(--text3)">Playing as:</span>
-      <select id="my-strategy-select" onchange="onStrategyChange(this.value)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:4px 8px;font-size:12px;">
-        <option value="TierSniper">TierSniper</option>
-        <option value="NominGambler">NominGambler</option>
-        <option value="DynamicMath">DynamicMath</option>
-        <option value="PosArbitrageur">PosArbitrageur</option>
-        <option value="StarChaser">StarChaser</option>
-        <option value="ValueInvestor">ValueInvestor</option>
+      <span style="font-size:11px;color:var(--text3)">Strategy:</span>
+      <select id="my-strategy-select" onchange="onStrategyChange(this.value)" title="Auto-populated from latest simulation. Run \`python main.py simulate\` to refresh." style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:4px 8px;font-size:12px;max-width:260px">
+        <option value="NominGambler" data-sim="NominationGambler">NominGambler (offline fallback)</option>
+        <option value="TierSniper" data-sim="TierSniper">TierSniper</option>
+        <option value="DynamicMath" data-sim="ContextualEnsemble">DynamicMath</option>
+        <option value="PosArbitrageur" data-sim="PositionalArbitrageur">PosArbitrageur</option>
+        <option value="StarChaser" data-sim="StarChaser">StarChaser</option>
+        <option value="ValueInvestor" data-sim="ValueInvestor">ValueInvestor</option>
       </select>
+      <span id="strat-hint" style="font-size:10px;color:var(--text3)">⬆ updates from simulation</span>
     </div>
+    <button onclick="downloadBackup()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);padding:4px 12px;font-size:12px;cursor:pointer" title="Download self-contained offline backup">⬇ Backup</button>
     <div style="display:flex;gap:8px;align-items:center;margin-left:auto">
       <span id="server-status" style="font-size:10px;padding:3px 8px;border-radius:20px;background:var(--surface3);color:var(--text3)">⬤ offline</span>
       <span id="phase-badge" class="phase-badge phase-a">Phase A — Conserve</span>
@@ -236,7 +238,7 @@
         </div>
         <div class="purse-track"><div class="purse-fill" id="my-purse-fill" style="width:100%"></div></div>
         <div style="display:flex;justify-content:space-between;margin-top:6px">
-          <span style="font-size:10px;color:var(--text3)">Roster: <span id="my-roster-count">0</span>/15</span>
+          <span style="font-size:10px;color:var(--text3)">Roster: <span id="my-roster-count">0</span>/16</span>
           <span style="font-size:10px;color:var(--text3)">₹/slot: <span id="my-cash-per-slot">—</span></span>
         </div>
       </div>
@@ -294,10 +296,11 @@
 
     <!-- Recommendation -->
     <div class="rec-block" id="rec-block" style="display:none">
-      <div class="auction-block-title">My recommendation</div>
+      <div class="auction-block-title">My recommendation <span id="rec-strategy-badge" style="font-size:10px;font-weight:400;color:var(--text3)"></span></div>
+      <div id="skip-warning" style="display:none;background:var(--amber-dim);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:12px;font-size:12px;color:var(--amber)"></div>
       <div class="rec-main">
         <div class="rec-bid-display">
-          <div class="rec-bid-label">Max bid</div>
+          <div class="rec-bid-label">Strategy ceiling</div>
           <div class="rec-bid-val" id="rec-bid">—<span class="cr">Cr</span></div>
         </div>
         <div class="rec-right">
@@ -306,13 +309,14 @@
           <div class="rec-meta" id="rec-meta"></div>
         </div>
       </div>
+      <div id="dominant-consensus" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"></div>
       <div class="bid-range" id="bid-range-viz"></div>
     </div>
 
     <!-- Strategy comparison -->
     <div class="strategy-block" id="strat-block" style="display:none">
-      <div class="auction-block-title" style="margin-bottom:0">What each strategy would bid</div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:2px">Simulate how different strategies value this player right now</div>
+      <div class="auction-block-title" style="margin-bottom:0">What dominant strategies would bid</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:2px">Top simulation strategies ranked by win-share — ceiling = JS-equivalent WTP for this player now</div>
       <div class="strategy-rows" id="strategy-rows"></div>
     </div>
 
@@ -343,11 +347,29 @@
 <div class="modal-overlay hidden" id="add-player-modal">
   <div class="modal">
     <h3 id="add-player-title">Add player to roster</h3>
-    <div class="form-group">
+    <div id="modal-pool-group" class="form-group">
       <label class="form-label">Player</label>
       <select id="modal-player-select" class="form-input">
         <option value="">— Select —</option>
       </select>
+      <div style="text-align:right;margin-top:4px"><a href="#" style="font-size:11px;color:var(--blue)" onclick="toggleCustomPlayer(event)">Not in pool? Add custom ▸</a></div>
+    </div>
+    <div id="modal-custom-group" style="display:none">
+      <div style="text-align:right;margin-bottom:6px"><a href="#" style="font-size:11px;color:var(--blue)" onclick="toggleCustomPlayer(event)">◂ Pick from pool</a></div>
+      <div class="form-group">
+        <label class="form-label">Name</label>
+        <input type="text" id="custom-player-name" class="form-input" placeholder="e.g. SO Hetmyer" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select id="custom-player-role" class="form-input">
+          <option value="BAT">BAT</option><option value="BOWL">BOWL</option><option value="AR">AR</option><option value="WK">WK</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Est. points</label>
+        <input type="number" id="custom-player-pts" class="form-input" min="1" step="1" placeholder="e.g. 45" />
+      </div>
     </div>
     <div class="form-group">
       <label class="form-label">Price paid (₹ Cr)</label>
@@ -409,8 +431,58 @@ const STATIC_POOL = [{"player_name":"SP Narine","role":"AR","projected_points":1
 const API = 'http://127.0.0.1:8080';
 let serverOnline = false;
 let mcInsights = {};
-let myStrategy = 'TierSniper';
+let myStrategy = 'NominGambler';  // JS strategy key currently in use
+let mySimStrategy = '';           // Python strategy name shown in dropdown
 let activeOverrides = {};
+
+// ─── STRATEGY MAPPING ────────────────────────────────
+// Maps Python simulation strategy names → closest JS implementation key.
+// Dominant strategies drive the dropdown; JS equivalent computes live WTP.
+const STRATEGY_MC_MAP = {
+  VampireGambler:         'NominGambler',
+  NominationGambler:      'NominGambler',
+  NominationFieldAdaptor: 'PosArbitrageur',
+  VampireMaximizer:       'TierSniper',
+  ContextualEnsemble:     'DynamicMath',
+  FieldAwareAdaptor:      'PosArbitrageur',
+  DynamicMaximizer:       'DynamicMath',
+  PositionalArbitrageur:  'PosArbitrageur',
+  ValueInvestor:          'ValueInvestor',
+  StarChaser:             'StarChaser',
+  TierSniper:             'TierSniper',
+  BarbellStrategist:      'TierSniper',
+  VampireSweeper:         'NominGambler',
+  ContrarianSnapper:      'NominGambler',
+  ContrarianArbitrageur:  'PosArbitrageur',
+  FieldSniper:            'TierSniper',
+  BudgetSweeper:          'ValueInvestor',
+  VampireGambler:         'NominGambler',
+};
+
+// What each JS strategy name means in plain English
+const STRATEGY_LABELS = {
+  TierSniper:      'Tier Sniper — hunt elite T1 players aggressively',
+  NominGambler:    'Nominate & Gamble — bid hard early, pass T2/T3',
+  DynamicMath:     'Dynamic Math — scale bid by relative quality vs pool',
+  PosArbitrageur:  'Positional Arb — overpay for role scarcity, pass surplus',
+  StarChaser:      'Star Chaser — all-in on first elite player seen',
+  ValueInvestor:   'Value Investor — only bid up to VORP-implied fair value',
+};
+
+function getDominantBids(player, pool) {
+  // Returns top-5 dominant MC strategies with their JS-equivalent WTP for this player
+  const sorted = Object.entries(mcInsights)
+    .filter(([,s]) => s.win_rate != null)
+    .sort(([,a],[,b]) => (b.win_rate||0) - (a.win_rate||0))
+    .slice(0, 5);
+  if (!sorted.length) return [];
+  return sorted.map(([nm, s]) => {
+    const jsKey = STRATEGY_MC_MAP[nm] || 'DynamicMath';
+    const fn = STRATEGIES[jsKey];
+    const bid = fn ? Math.max(0.5, fn(player, pool)) : 0;
+    return { simName: nm, jsKey, winShare: s.win_rate || 0, bid };
+  });
+}
 
 async function checkServer() {
   try {
@@ -440,6 +512,25 @@ async function loadInsightsFromServer() {
     const data = await r.json();
     mcInsights = {};
     data.strategies.forEach(s => { mcInsights[s.name] = s; });
+
+    // Rebuild strategy dropdown from top-5 dominant strategies
+    const sorted = Object.entries(mcInsights)
+      .filter(([,s]) => s.win_rate > 0)
+      .sort(([,a],[,b]) => (b.win_rate||0) - (a.win_rate||0));
+    if (sorted.length) {
+      const top5 = sorted.slice(0, 5);
+      const sel = document.getElementById('my-strategy-select');
+      sel.innerHTML = top5.map(([nm, s], i) => {
+        const jsKey = STRATEGY_MC_MAP[nm] || 'DynamicMath';
+        const wr = (s.win_rate * 100).toFixed(1);
+        return `<option value="${jsKey}" data-sim="${nm}">${i===0?'★ ':''}${nm} (${wr}%)</option>`;
+      }).join('');
+      // Auto-select #1 dominant strategy
+      const [topName] = sorted[0];
+      mySimStrategy = topName;
+      myStrategy = STRATEGY_MC_MAP[topName] || 'DynamicMath';
+      sel.value = myStrategy;
+    }
     renderInsights();
   } catch { /* server offline */ }
 }
@@ -453,6 +544,63 @@ async function loadOverridesFromServer() {
   } catch { activeOverrides = {}; }
 }
 
+// ─── PERSISTENCE ─────────────────────────────────────
+const STORAGE_KEY = 'ipl_advisor_state_v1';
+
+function saveState() {
+  const payload = {
+    me: {
+      purse: me.purse,
+      roleCounts: me.roleCounts,
+      roster: me.roster.map(r => ({ player_name: r.p.player_name, price: r.price })),
+    },
+    opponents: opponents.map(o => ({
+      id: o.id, name: o.name, purse: o.purse,
+      roster: o.roster.map(r => ({ player_name: r.p.player_name, price: r.price })),
+    })),
+    soldPlayers: [...soldPlayers],
+    customPlayers: POOL.filter(p => p.is_custom),
+  };
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); } catch(e) {}
+}
+
+function loadState() {
+  let raw;
+  try { raw = localStorage.getItem(STORAGE_KEY); } catch(e) { return; }
+  if (!raw) return;
+  let payload;
+  try { payload = JSON.parse(raw); } catch(e) { return; }
+
+  const byName = Object.fromEntries(POOL.map(p => [p.player_name, p]));
+
+  // Inject custom players saved in state back into POOL (they aren't in server pool)
+  (payload.customPlayers || []).forEach(cp => {
+    if (!byName[cp.player_name]) { POOL.push(cp); byName[cp.player_name] = cp; }
+  });
+
+  // Restore my roster
+  if (payload.me) {
+    me.purse = payload.me.purse ?? 120;
+    me.roleCounts = payload.me.roleCounts ?? {BAT:0,BOWL:0,AR:0,WK:0};
+    me.roster = (payload.me.roster || []).flatMap(r => {
+      const p = byName[r.player_name];
+      return p ? [{ p, price: r.price }] : [];
+    });
+  }
+
+  // Restore opponents
+  opponents = (payload.opponents || []).map(o => ({
+    id: o.id, name: o.name, purse: o.purse,
+    roster: (o.roster || []).flatMap(r => {
+      const p = byName[r.player_name];
+      return p ? [{ p, price: r.price }] : [];
+    }),
+  }));
+
+  // Restore sold set
+  soldPlayers = new Set(payload.soldPlayers || []);
+}
+
 async function initData() {
   await checkServer();
   if (serverOnline) {
@@ -463,6 +611,7 @@ async function initData() {
   } else {
     POOL = STATIC_POOL;
   }
+  loadState(); // restore persisted roster/opponents after pool is available
   populatePlayerSelect();
   render();
 }
@@ -498,14 +647,18 @@ function crPerVorp(pool) {
 function t1Remaining(pool) {
   return pool.filter(p=>p.tier===1).length;
 }
-function mySlots() { return Math.max(0, 15 - me.roster.length); }
+function mySlots() { return Math.max(0, 16 - me.roster.length); }
 function myMandatory() { return Math.max(0, 13 - me.roster.length); }
 function myMaxBid() { return Math.max(0, me.purse - 0.5 * Math.max(0, myMandatory()-1)); }
 function myCashPerSlot() { return mySlots() > 0 ? me.purse/mySlots() : 0; }
 
 // ─── STRATEGY SELECTOR ──────────────────────────────
 function onStrategyChange(val) {
+  // val is the JS strategy key; read the sim name from the selected option
   myStrategy = val;
+  const sel = document.getElementById('my-strategy-select');
+  const opt = sel.options[sel.selectedIndex];
+  mySimStrategy = opt ? (opt.dataset.sim || '') : '';
   if (currentPlayer) renderAnalysis(currentPlayer);
 }
 
@@ -643,13 +796,17 @@ function renderInsights() {
     .sort((a,b) => (mcInsights[b].win_rate||0) - (mcInsights[a].win_rate||0))
     .map((nm, i) => {
       const s = mcInsights[nm];
-      const wr = s.win_rate != null ? (s.win_rate*100).toFixed(1)+'%' : '—';
+      const ws = s.win_rate != null ? (s.win_rate*100).toFixed(1)+'%' : '—';
+      const cwr = s.conditional_win_rate != null ? (s.conditional_win_rate*100).toFixed(1)+'%' : '';
       const pct = s.win_rate != null ? (s.win_rate/maxWR*100) : 0;
-      const isMe = nm === myStrategy || nm.replace('am','') === myStrategy.replace('am','');
-      return `<div class="strat-row" style="${isMe ? 'background:var(--amber-dim);border-radius:4px;padding:2px 4px;' : ''}">
-        <div class="strat-name" style="${isMe ? 'color:var(--amber);font-weight:600' : ''}">${nm}</div>
+      const isActive = nm === mySimStrategy;
+      return `<div class="strat-row" style="${isActive ? 'background:var(--amber-dim);border-radius:4px;padding:2px 4px;' : ''}">
+        <div class="strat-name" style="${isActive ? 'color:var(--amber);font-weight:600' : ''}">
+          ${isActive?'★ ':''}${nm}
+          ${cwr ? `<span style="font-size:9px;color:var(--text3);margin-left:4px">${cwr}/gm</span>` : ''}
+        </div>
         <div class="strat-bar-wrap"><div class="strat-bar" style="width:${pct}%;background:${colors[i%colors.length]}"></div></div>
-        <div class="strat-bid">${wr}</div>
+        <div class="strat-bid">${ws}</div>
       </div>`;
     }).join('');
 }
@@ -659,16 +816,31 @@ function computeRecommendation(player) {
   if (!player) return null;
   const pool = remainingPool().filter(p => p.player_name !== player.player_name);
 
-  // Run all strategies
+  // Run all JS strategies
   const bids = {};
   Object.entries(STRATEGIES).forEach(([k,fn]) => {
     bids[k] = Math.max(0.5, fn(player, pool));
   });
 
-  // Primary: use selected strategy (40%) + DynamicMath (40%) + PosArbitrageur (20%)
-  const primaryBid = bids[myStrategy] || bids['TierSniper'] || 0;
-  const consensus = (primaryBid*0.5 + (bids['DynamicMath']||0)*0.3 + (bids['PosArbitrageur']||0)*0.2);
-  const maxBid = Math.min(consensus, myMaxBid());
+  // Use the currently selected dominant strategy's bid directly — no blend.
+  // This ensures the "Max bid" and the strategy bar always agree.
+  const primaryBid = bids[myStrategy] || bids['DynamicMath'] || 0;
+  const maxBid = Math.min(primaryBid, myMaxBid());
+
+  // Dominant consensus from top-5 simulation strategies
+  const dominantBids = getDominantBids(player, pool);
+  const basePr = player.base_price || 1.0;
+  const bidYes = dominantBids.filter(d => d.bid > basePr * 1.05).length;
+  const bidNo  = dominantBids.length - bidYes;
+
+  // Skip signal: warn if player is below median rank in remaining pool for their role
+  const rolePool = poolByRole(pool)[player.role] || [];
+  const rankInRole = rolePool.findIndex(p => p.player_name === player.player_name) + 1;
+  const roleTotal = rolePool.length;
+  const belowMedian = roleTotal >= 4 && rankInRole > Math.ceil(roleTotal * 0.5);
+  const skipReason = belowMedian
+    ? `Ranked #${rankInRole}/${roleTotal} ${player.role} in remaining pool — ${roleTotal - rankInRole} better options still available`
+    : null;
 
   // Opponent max threat
   const oppThreats = computeOppThreats(player);
@@ -687,19 +859,26 @@ function computeRecommendation(player) {
   } else if (maxBid < 0.5) {
     verdict = 'Pass — no budget'; signal = 'pass';
     reasoning = 'You need to reserve cash for mandatory roster slots.';
+  } else if (skipReason && bidYes === 0) {
+    verdict = 'Skip this player'; signal = 'pass';
+    reasoning = skipReason + '. All dominant strategies also pass.';
   } else if (currentBid > 0 && currentBid > maxBid * 1.15) {
     verdict = 'Drop out now'; signal = 'pass';
-    reasoning = `Current bid ₹${currentBid.toFixed(2)}Cr is ${((currentBid/maxBid-1)*100).toFixed(0)}% above your max. Let it go.`;
+    reasoning = `Current bid ₹${currentBid.toFixed(2)}Cr is ${((currentBid/maxBid-1)*100).toFixed(0)}% above your strategy ceiling. Let it go.`;
   } else if (currentBid > 0 && currentBid > maxBid * 0.9) {
     verdict = 'One more bid, then stop'; signal = 'caution';
-    reasoning = `You're near your ceiling. Bid once more at ₹${(currentBid+0.25).toFixed(2)}Cr max, then walk away.`;
+    reasoning = `You're at your ceiling. Bid once more at ₹${(currentBid+0.25).toFixed(2)}Cr max, then walk away.`;
+  } else if (skipReason && player.tier >= 2) {
+    verdict = 'Caution — mediocre pick'; signal = 'caution';
+    reasoning = skipReason + `. Your strategy ceiling is ₹${maxBid.toFixed(2)}Cr — only bid if you're short on this role.`;
   } else {
     verdict = 'Bid confidently'; signal = 'go';
     const reason_parts = [];
     if (player.tier === 1) reason_parts.push(`Tier-1 elite — lock before pool thins`);
     if (player.vorp > 50) reason_parts.push(`high VORP (${player.vorp.toFixed(0)}) means strong positional scarcity value`);
-    if (maxOppThreat > 0 && maxOppThreat < maxBid) reason_parts.push(`estimated max opponent bid ₹${maxOppThreat.toFixed(1)}Cr — you have headroom`);
-    if (fair < maxBid * 0.8) reason_parts.push(`trading below fair value ₹${fair.toFixed(1)}Cr`);
+    if (maxOppThreat > 0 && maxOppThreat < maxBid) reason_parts.push(`max opponent threat ₹${maxOppThreat.toFixed(1)}Cr — you have headroom`);
+    if (fair < maxBid * 0.8) reason_parts.push(`below VORP fair value ₹${fair.toFixed(1)}Cr`);
+    if (dominantBids.length && bidYes >= Math.ceil(dominantBids.length/2)) reason_parts.push(`${bidYes}/${dominantBids.length} dominant strategies agree`);
     reasoning = reason_parts.length ? reason_parts.join('; ') + '.' : `Solid value at up to ₹${maxBid.toFixed(2)}Cr.`;
   }
 
@@ -707,12 +886,13 @@ function computeRecommendation(player) {
   const t1rem = t1Remaining(remainingPool());
   const phase = t1rem >= 8 ? 'A' : t1rem >= 3 ? 'B' : 'C';
 
-  return { maxBid, fair, bids, oppThreats, verdict, signal, reasoning, currentBid, phase, t1rem };
+  return { maxBid, fair, bids, oppThreats, verdict, signal, reasoning, currentBid, phase, t1rem,
+           dominantBids, bidYes, bidNo, skipReason, rankInRole, roleTotal };
 }
 
 function computeOppThreats(player) {
   return opponents.map(opp => {
-    const oppSlots = Math.max(0, 15 - opp.roster.length);
+    const oppSlots = Math.max(0, 16 - opp.roster.length);
     const oppMandatory = Math.max(0, 13 - opp.roster.length);
     const oppAvg = oppSlots > 0 ? opp.purse/oppSlots : 0;
     const oppMaxBid = opp.purse - 0.5*Math.max(0, oppMandatory-1);
@@ -823,6 +1003,19 @@ function renderAnalysis(player) {
   document.getElementById('ps-vorp').textContent = player.vorp.toFixed(1);
   document.getElementById('ps-std').textContent = player.std_dev.toFixed(0);
 
+  // Strategy badge in title
+  const badge = document.getElementById('rec-strategy-badge');
+  if (badge) badge.textContent = mySimStrategy ? `— following ${mySimStrategy}` : '';
+
+  // Skip warning
+  const skipEl = document.getElementById('skip-warning');
+  if (rec.skipReason) {
+    skipEl.style.display = 'block';
+    skipEl.innerHTML = `⚠ <strong>Mediocre pick:</strong> ${rec.skipReason}`;
+  } else {
+    skipEl.style.display = 'none';
+  }
+
   // Recommendation
   const recBlock = document.getElementById('rec-block');
   recBlock.style.display = 'block';
@@ -838,25 +1031,72 @@ function renderAnalysis(player) {
   const tierLabels = {1:'Elite T1',2:'Solid T2',3:'Depth T3'};
   document.getElementById('rec-meta').innerHTML = [
     `<span class="rec-tag">${tierLabels[player.tier]||'T?'}</span>`,
-    `<span class="rec-tag">Fair ₹${rec.fair.toFixed(1)}Cr</span>`,
-    `<span class="rec-tag">${player.matches} matches played</span>`,
+    `<span class="rec-tag">VORP fair ₹${rec.fair.toFixed(1)}Cr</span>`,
+    `<span class="rec-tag">${player.matches} matches</span>`,
+    rec.roleTotal ? `<span class="rec-tag" style="color:${rec.rankInRole <= Math.ceil(rec.roleTotal*0.5) ? 'var(--green)' : 'var(--amber)'}">Rank #${rec.rankInRole}/${rec.roleTotal} ${player.role}</span>` : '',
     rec.t1rem < 8 ? `<span class="rec-tag" style="color:var(--amber)">${rec.t1rem} elite left</span>` : '',
   ].join('');
+
+  // Dominant consensus panel
+  const consEl = document.getElementById('dominant-consensus');
+  if (rec.dominantBids && rec.dominantBids.length) {
+    const maxB = Math.max(...rec.dominantBids.map(d=>d.bid), rec.maxBid);
+    const myJsBid = rec.bids[myStrategy] || 0;
+    const sigColors = {bid:'var(--green)',caution:'var(--amber)',pass:'var(--red)'};
+    const rows = rec.dominantBids.map(d => {
+      const sig = d.bid > (player.base_price||1)*1.05 ? 'bid' : 'pass';
+      const isActive = d.simName === mySimStrategy;
+      return `<div class="strat-row" style="${isActive?'background:var(--amber-dim);border-radius:4px;padding:2px 4px;':''}">
+        <div class="strat-name" style="font-size:11px;${isActive?'color:var(--amber);font-weight:600':''}">
+          ${isActive?'★ ':''}${d.simName}
+          <span style="font-size:9px;color:var(--text3);margin-left:4px">(${(d.winShare*100).toFixed(1)}% WS)</span>
+        </div>
+        <div class="strat-bar-wrap"><div class="strat-bar" style="width:${(d.bid/Math.max(1,maxB)*100).toFixed(0)}%;background:${sigColors[sig]}"></div></div>
+        <div class="strat-bid" style="color:${sigColors[sig]}">₹${d.bid.toFixed(2)}</div>
+      </div>`;
+    }).join('');
+    const yesLabel = rec.bidYes > 0 ? `<span style="color:var(--green)">${rec.bidYes} say BID</span>` : '';
+    const noLabel  = rec.bidNo  > 0 ? `<span style="color:var(--red)">${rec.bidNo} say PASS</span>` : '';
+    consEl.innerHTML = `
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px">
+        Dominant strategy consensus &nbsp; ${[yesLabel,noLabel].filter(Boolean).join(' &nbsp;·&nbsp; ')}
+      </div>${rows}`;
+    consEl.style.display = 'block';
+  } else {
+    consEl.innerHTML = '<div style="font-size:11px;color:var(--text3)">Run <code>python main.py simulate</code> then refresh to see dominant strategy consensus</div>';
+    consEl.style.display = 'block';
+  }
 
   // Bid range viz
   renderBidRange(rec, player);
 
-  // Strategy comparison
+  // Strategy comparison — show dominant MC strategies with JS-equivalent bids
   document.getElementById('strat-block').style.display = 'block';
-  const maxStratBid = Math.max(...Object.values(rec.bids));
   const stratColors = { TierSniper:'var(--amber)', NominGambler:'var(--blue)', DynamicMath:'var(--green)', PosArbitrageur:'var(--teal)', StarChaser:'var(--purple)', ValueInvestor:'var(--text2)' };
-  document.getElementById('strategy-rows').innerHTML = Object.entries(rec.bids)
-    .sort((a,b)=>b[1]-a[1])
-    .map(([k,v]) => `<div class="strat-row">
-      <div class="strat-name">${k}</div>
-      <div class="strat-bar-wrap"><div class="strat-bar" style="width:${(v/Math.max(1,maxStratBid)*100).toFixed(0)}%;background:${stratColors[k]||'var(--text2)'}"></div></div>
-      <div class="strat-bid">₹${v.toFixed(2)}</div>
-    </div>`).join('');
+  if (rec.dominantBids && rec.dominantBids.length) {
+    // Show dominant MC strategy bids (already computed in getDominantBids)
+    const maxDB = Math.max(...rec.dominantBids.map(d=>d.bid), 1);
+    document.getElementById('strategy-rows').innerHTML = rec.dominantBids.map(d => {
+      const isActive = d.simName === mySimStrategy;
+      return `<div class="strat-row" style="${isActive?'background:var(--amber-dim);border-radius:4px;padding:2px 4px;':''}">
+        <div class="strat-name" style="${isActive?'color:var(--amber);font-weight:600':''}">
+          ${isActive?'★ ':''}${d.simName}
+        </div>
+        <div class="strat-bar-wrap"><div class="strat-bar" style="width:${(d.bid/Math.max(1,maxDB)*100).toFixed(0)}%;background:${stratColors[d.jsKey]||'var(--text2)'}"></div></div>
+        <div class="strat-bid">₹${d.bid.toFixed(2)}</div>
+      </div>`;
+    }).join('');
+  } else {
+    // Fallback: show all JS strategies
+    const maxB = Math.max(...Object.values(rec.bids));
+    document.getElementById('strategy-rows').innerHTML = Object.entries(rec.bids)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([k,v]) => `<div class="strat-row">
+        <div class="strat-name">${k}</div>
+        <div class="strat-bar-wrap"><div class="strat-bar" style="width:${(v/Math.max(1,maxB)*100).toFixed(0)}%;background:${stratColors[k]||'var(--text2)'}"></div></div>
+        <div class="strat-bid">₹${v.toFixed(2)}</div>
+      </div>`).join('');
+  }
 
   // Opponent pressure
   if (rec.oppThreats.length) {
@@ -955,15 +1195,33 @@ function openAddPlayerModal(target) {
   document.getElementById('add-player-title').textContent = title;
   document.getElementById('modal-player-select').value = '';
   document.getElementById('modal-price').value = '';
+  document.getElementById('modal-pool-group').style.display = '';
+  document.getElementById('modal-custom-group').style.display = 'none';
+  document.getElementById('custom-player-name').value = '';
+  document.getElementById('custom-player-pts').value = '';
   populatePlayerSelect();
   document.getElementById('add-player-modal').classList.remove('hidden');
 }
 
 function confirmAddPlayer() {
-  const name = document.getElementById('modal-player-select').value;
+  const isCustom = document.getElementById('modal-custom-group').style.display !== 'none';
   const price = parseFloat(document.getElementById('modal-price').value);
-  if (!name || isNaN(price) || price <= 0) { alert('Please select a player and enter a valid price.'); return; }
-  const p = POOL.find(pl => pl.player_name === name);
+  let p, name;
+  if (isCustom) {
+    name = document.getElementById('custom-player-name').value.trim();
+    const role = document.getElementById('custom-player-role').value;
+    const pts = parseFloat(document.getElementById('custom-player-pts').value);
+    if (!name || isNaN(pts) || pts <= 0) { alert('Please enter a player name and points estimate.'); return; }
+    if (isNaN(price) || price <= 0) { alert('Please enter a valid price paid.'); return; }
+    p = POOL.find(pl => pl.player_name === name) ||
+        { player_name: name, role, projected_points: pts, std_dev: Math.round(pts * 0.8), vorp: 0, tier: 2, base_price: 3.0, is_marquee: false, matches: 0, is_custom: true };
+    if (!POOL.find(pl => pl.player_name === name)) POOL.push(p);
+  } else {
+    name = document.getElementById('modal-player-select').value;
+    if (!name || isNaN(price) || price <= 0) { alert('Please select a player and enter a valid price.'); return; }
+    p = POOL.find(pl => pl.player_name === name);
+  }
+  if (!p || isNaN(price) || price <= 0) { alert('Please fill in all required fields.'); return; }
   soldPlayers.add(name);
   if (addingFor === 'me') {
     me.roster.push({p, price});
@@ -974,9 +1232,19 @@ function confirmAddPlayer() {
     if (opp) { opp.roster.push({p,price}); opp.purse -= price; }
   }
   closeModal('add-player-modal');
+  saveState();
   populatePlayerSelect();
   if (currentPlayer && currentPlayer.player_name === name) { currentPlayer = null; document.getElementById('player-select').value = ''; document.getElementById('player-stats').style.display='none'; document.getElementById('rec-block').style.display='none'; document.getElementById('strat-block').style.display='none'; document.getElementById('pressure-block').style.display='none'; }
   render();
+}
+
+function toggleCustomPlayer(e) {
+  e.preventDefault();
+  const poolGroup = document.getElementById('modal-pool-group');
+  const customGroup = document.getElementById('modal-custom-group');
+  const showCustom = customGroup.style.display === 'none';
+  poolGroup.style.display = showCustom ? 'none' : '';
+  customGroup.style.display = showCustom ? '' : 'none';
 }
 
 function removeMyPlayer(name) {
@@ -986,6 +1254,7 @@ function removeMyPlayer(name) {
   me.purse += entry.price;
   me.roleCounts[entry.p.role]--;
   soldPlayers.delete(name);
+  saveState();
   populatePlayerSelect();
   render();
 }
@@ -1003,6 +1272,7 @@ function confirmAddOpponent() {
   if (!name) { alert('Enter a name'); return; }
   opponents.push({ id: 'opp_'+Date.now(), name, purse, roster: [] });
   closeModal('add-opp-modal');
+  saveState();
   render();
 }
 
@@ -1010,6 +1280,7 @@ function removeOpponent(id) {
   const opp = opponents.find(o=>o.id===id);
   if (opp) opp.roster.forEach(r => soldPlayers.delete(r.p.player_name));
   opponents = opponents.filter(o=>o.id!==id);
+  saveState();
   populatePlayerSelect();
   render();
 }
@@ -1018,7 +1289,7 @@ function editOppPurse(id) {
   const opp = opponents.find(o=>o.id===id);
   if (!opp) return;
   const val = prompt(`Update ${opp.name}'s purse (₹ Cr):`, opp.purse);
-  if (val !== null) { const n = parseFloat(val); if (!isNaN(n)) { opp.purse = n; render(); } }
+  if (val !== null) { const n = parseFloat(val); if (!isNaN(n)) { opp.purse = n; saveState(); render(); } }
 }
 
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
@@ -1026,6 +1297,7 @@ function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 function resetAll() {
   me = { purse: 120, roster: [], roleCounts: {BAT:0,BOWL:0,AR:0,WK:0} };
   opponents = []; soldPlayers = new Set(); currentPlayer = null;
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
   document.getElementById('player-select').value = '';
   document.getElementById('current-bid-input').value = '';
   document.getElementById('player-stats').style.display='none';
@@ -1033,6 +1305,66 @@ function resetAll() {
   document.getElementById('strat-block').style.display='none';
   document.getElementById('pressure-block').style.display='none';
   populatePlayerSelect(); render();
+}
+
+// ─── OFFLINE BACKUP ─────────────────────────────────
+function downloadBackup() {
+  // Read current file source, replace STATIC_POOL with live pool + bake in mcInsights
+  // Strategy: fetch this very page's text, patch two constants, trigger download.
+  fetch(window.location.href)
+    .then(r => r.text())
+    .then(src => {
+      // Replace the STATIC_POOL constant with the live pool we have in memory
+      const poolJson = JSON.stringify(POOL);
+      src = src.replace(
+        /const STATIC_POOL = \[.*?\];/s,
+        `const STATIC_POOL = ${poolJson};`
+      );
+      // Embed current mcInsights so strategy dropdown works offline
+      const insightsJson = JSON.stringify(mcInsights);
+      // Inject a pre-loaded block right before initData() call
+      const inject = `
+// ─── OFFLINE: pre-loaded simulation insights ────────
+const _OFFLINE_INSIGHTS = ${insightsJson};
+const _orig_initData = initData;
+initData = async function() {
+  // Populate mcInsights before server check so offline mode sees them
+  if (Object.keys(_OFFLINE_INSIGHTS).length) {
+    mcInsights = _OFFLINE_INSIGHTS;
+    const sorted = Object.entries(mcInsights)
+      .filter(([,s]) => s.win_rate > 0)
+      .sort(([,a],[,b]) => (b.win_rate||0) - (a.win_rate||0));
+    if (sorted.length) {
+      const top5 = sorted.slice(0,5);
+      const sel = document.getElementById('my-strategy-select');
+      if (sel) {
+        sel.innerHTML = top5.map(([nm,s],i) => {
+          const jsKey = STRATEGY_MC_MAP[nm] || 'DynamicMath';
+          const wr = (s.win_rate*100).toFixed(1);
+          return \`<option value="\${jsKey}" data-sim="\${nm}">\${i===0?'★ ':''}\${nm} (\${wr}%)</option>\`;
+        }).join('');
+        mySimStrategy = sorted[0][0];
+        myStrategy = STRATEGY_MC_MAP[sorted[0][0]] || 'DynamicMath';
+        sel.value = myStrategy;
+      }
+      renderInsights();
+    }
+  }
+  await _orig_initData();
+};
+`;
+      src = src.replace('// ─── INIT ───────────────────────────────────────────', inject + '\n// ─── INIT ───────────────────────────────────────────');
+
+      const date = new Date().toISOString().slice(0,10);
+      const blob = new Blob([src], {type: 'text/html'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `ipl_advisor_backup_${date}.html`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    })
+    .catch(() => alert('Could not fetch page source for backup. Save the page manually with Ctrl+S / Cmd+S.'));
 }
 
 // ─── INIT ───────────────────────────────────────────

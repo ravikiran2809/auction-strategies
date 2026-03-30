@@ -77,7 +77,7 @@ class Manager:
     params: StrategyParams
     total_purse: float = 120.0
     min_roster: int = 13
-    max_roster: int = 15
+    max_roster: int = 16
     purse: float = field(init=False)
     roster: list = field(init=False)
     role_counts: dict = field(init=False)

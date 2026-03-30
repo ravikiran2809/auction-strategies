@@ -40,7 +40,7 @@ def _build_pool(args) -> list[dict]:
     if args.model == "recent":
         model = RecentFormModel(last_n_matches=args.last_n)
     else:
-        weights = _parse_season_weights(args.seasons) if args.seasons else {"2025": 1.0, "2024": 0.6}
+        weights = _parse_season_weights(args.seasons) if args.seasons else {"2025": 1.0}
         model = WeightedSeasonModel(weights)
 
     print(f"Building pool (model={args.model}, vorp={args.vorp_method}) …")
