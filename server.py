@@ -4,20 +4,40 @@ server.py — FastAPI advisor server
 Start with:  python main.py serve  (or uvicorn server:app --reload)
 
 Endpoints:
-  GET  /api/pool                  current player pool (with overrides applied)
-  GET  /api/strategies            registry + params + MC win rates
-  POST /api/override              set manual projected_points for a player
-  DELETE /api/override/{name}     remove an override
-  GET  /api/playbook              tier-by-tier advice for a strategy
-  POST /api/simulate              trigger fresh MC run (blocking, ~10s for 200 runs)
-  GET  /api/health                liveness check
+  GET    /api/health                liveness check
+  GET    /api/pool                  current player pool (with overrides applied)
+  GET    /api/strategies            registry + params + MC win rates
+  POST   /api/override              set manual projected_points for a player
+  DELETE /api/override/{name}       remove an override
+  GET    /api/playbook              tier-by-tier advice for a strategy
+  POST   /api/simulate              trigger fresh MC run (blocking)
+  GET    /api/state                 load persisted live auction state
+  POST   /api/state                 persist live auction state
+  POST   /api/advice                get bid ceiling from a strategy
+  POST   /api/advice/sold           notify a completed sale (feeds MarketAnalyzer)
+  DELETE /api/session/{tourney_id}  clear MarketAnalyzer history for a tourney
 """
 
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Optional
+
+# ── Logging setup ─────────────────────────────────────────────────────────────
+# Advisor bot decisions are written to advisor.log (and echoed to stdout).
+# View live:  tail -f advisor.log
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[
+        logging.FileHandler("advisor.log"),
+        logging.StreamHandler(),
+    ],
+)
+log = logging.getLogger("advisor")
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,9 +50,38 @@ from engine.overrides import load_overrides, set_override, remove_override
 from engine.strategies import STRATEGY_REGISTRY, load_params
 from engine.pool import build_pool, WeightedSeasonModel
 
-_POOL_PATH     = Path("player_pool.json")
-_INSIGHTS_PATH = Path("insights.json")
-_EVOLVED_PATH  = Path("evolved_params.json")
+_POOL_PATH            = Path("player_pool.json")
+_INSIGHTS_PATH        = Path("insights.json")
+_EVOLVED_PATH         = Path("evolved_params.json")
+_MASTER_PATH          = Path("player_master.json")
+_AUCTION_STATE_PATH   = Path("auction_state.json")
+
+
+def _build_master_map() -> dict[str, dict]:
+    """Build csv_name → master entry lookup from player_master.json."""
+    if not _MASTER_PATH.exists():
+        return {}
+    with open(_MASTER_PATH) as f:
+        master = json.load(f)
+    return {p["csv_name"]: p for p in master if p.get("csv_name")}
+
+
+_MASTER_MAP: dict[str, dict] = _build_master_map()
+
+# ── Session-scoped MarketAnalyzers ────────────────────────────────────────────
+# One MarketAnalyzer per live tourney, keyed by tourney_id.
+# Initialised on the first POST /api/advice/sold for a given tourney.
+# Accumulates real sale history so market_mode reflects actual auction dynamics.
+# Without this, bids called via /api/advice always see market_mode='normal'.
+from engine.market import MarketAnalyzer as _MarketAnalyzer
+_sessions: dict[str, _MarketAnalyzer] = {}
+
+
+def _get_session(tourney_id: str) -> _MarketAnalyzer:
+    """Return the MarketAnalyzer for a tourney, creating it if needed."""
+    if tourney_id not in _sessions:
+        _sessions[tourney_id] = _MarketAnalyzer()
+    return _sessions[tourney_id]
 
 app = FastAPI(title="IPL Auction Advisor", version="1.0")
 
@@ -59,7 +108,15 @@ def _get_pool() -> list[dict]:
         # Auto-generate with defaults on first request
         pool = build_pool(model=WeightedSeasonModel({"2024": 1.0}))
         export_pool(pool)
-    return load_pool()
+    pool = load_pool()
+    # Enrich each player with their auction display name from player_master.json
+    for p in pool:
+        m = _MASTER_MAP.get(p["player_name"])
+        if m:
+            p["auction_name"] = m["name"]
+        else:
+            p["auction_name"] = p["player_name"]  # fallback: use csv_name as-is
+    return pool
 
 
 def _load_insights() -> dict:
@@ -87,6 +144,56 @@ class SimulateRequest(BaseModel):
     n: int = 200
     strategies: Optional[list[str]] = None
     evolved: bool = False
+
+
+class AuctionStateModel(BaseModel):
+    me: dict          # {purse: float, roster: [{player_name, role, price, ...}]}
+    opponents: list   # [{name, purse, roster: [player_name, ...]}, ...]
+
+
+class AdviceRequest(BaseModel):
+    """
+    Generalised bid-advice request — designed to be called from any frontend
+    or API consumer that can supply current auction state.
+
+    player_name: csv_name or auction_name of the player currently on the block.
+    my_purse:    current remaining purse (₹ Cr).
+    my_roster:   list of player identifiers (csv_name or auction_name) in my squad.
+    opponents:   list of {name, purse, roster: [player identifiers]}.
+    strategy:    which registered strategy to ask for advice.
+    evolved:     whether to use CMA-ES evolved params (True) or defaults.
+    tourney_id:  if provided, the strategy's MarketAnalyzer is seeded with real
+                 sale history accumulated via POST /api/advice/sold for this tourney.
+                 Omit for the HTML advisor (it manages its own state); include for
+                 the Spring Boot bot integration.
+    """
+    player_name: str
+    my_purse: float = 120.0
+    my_roster: list[str] = []
+    opponents: list[dict] = []
+    strategy: str = "SquadCompletionBidder"
+    evolved: bool = True
+    tourney_id: Optional[str] = None
+
+
+class SoldEvent(BaseModel):
+    """
+    Notifies the advisor that a player was sold at auction.
+    Called by AuctionServiceImpl.closeAuction() after every hammer.
+
+    Feeds the session MarketAnalyzer so market_mode ('overbid'/'buyer'/'normal')
+    reflects real price history. Without these events, market dampening and boosting
+    signals in the strategies are always neutral.
+
+    player_name: display name or csv_name — both accepted.
+    price:       final sale price in ₹ Crore (platform sends paisa ÷ 10_000_000).
+    buyer:       winning team's display name.
+    tourney_id:  FantasyTourney.id — keys the session MarketAnalyzer.
+    """
+    player_name: str
+    price: float
+    buyer: str
+    tourney_id: str
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -278,6 +385,237 @@ def post_simulate(req: SimulateRequest):
             for nm, r in results.items()
         },
     }
+
+
+# ── State persistence ────────────────────────────────────────────────────────
+@app.get("/api/state")
+def get_auction_state():
+    """
+    Return the last-saved live auction state (my roster + opponent rosters).
+    State is written by the HTML advisor after every purchase.
+    """
+    if not _AUCTION_STATE_PATH.exists():
+        return {"me": {"purse": 120.0, "roster": []}, "opponents": []}
+    with open(_AUCTION_STATE_PATH) as f:
+        return json.load(f)
+
+
+@app.post("/api/state")
+def post_auction_state(req: AuctionStateModel):
+    """Persist live auction state to disk so it survives page refreshes."""
+    state = {"me": req.me, "opponents": req.opponents}
+    with open(_AUCTION_STATE_PATH, "w") as f:
+        json.dump(state, f, indent=2)
+    return {"ok": True}
+
+
+# ── Real strategy advice ──────────────────────────────────────────────────────
+@app.post("/api/advice")
+def post_advice(req: AdviceRequest):
+    """
+    Run a registered strategy against the supplied auction state and return
+    its recommended bid ceiling for the player on the block.
+
+    This is the generalised entry-point: any UI or downstream system can call
+    it with state derived from real-time inputs rather than a simulated auction.
+    """
+    pool = _get_pool()
+
+    # Build a dual-key lookup so callers can use either csv_name or auction_name
+    name_to_player: dict[str, dict] = {}
+    for p in pool:
+        name_to_player[p["player_name"]] = p
+        if p.get("auction_name") and p["auction_name"] != p["player_name"]:
+            name_to_player[p["auction_name"]] = p
+
+    player = name_to_player.get(req.player_name)
+    if not player:
+        raise HTTPException(status_code=404, detail=f"Player '{req.player_name}' not found in pool")
+
+    def resolve_names(names: list[str]) -> list[dict]:
+        return [name_to_player[n] for n in names if n in name_to_player]
+
+    my_roster_players = resolve_names(req.my_roster)
+
+    # Collect all sold player csv_names
+    all_rostered: set[str] = set()
+    for n in req.my_roster:
+        p = name_to_player.get(n)
+        if p:
+            all_rostered.add(p["player_name"])
+    for opp in req.opponents:
+        for n in opp.get("roster", []):
+            p = name_to_player.get(n)
+            if p:
+                all_rostered.add(p["player_name"])
+
+    remaining = [
+        p for p in pool
+        if p["player_name"] not in all_rostered
+        and p["player_name"] != player["player_name"]
+    ]
+
+    pool_by_role: dict[str, list] = {"BAT": [], "BOWL": [], "AR": [], "WK": []}
+    for p in remaining:
+        role = p.get("role", "BAT")
+        if role in pool_by_role:
+            pool_by_role[role].append(p)
+    for role in pool_by_role:
+        pool_by_role[role].sort(key=lambda x: x["projected_points"], reverse=True)
+
+    # Build opposing agent states
+    agent_states: dict[str, dict] = {}
+    for opp in req.opponents:
+        opp_players = resolve_names(opp.get("roster", []))
+        agent_states[opp["name"]] = {
+            "purse":         float(opp["purse"]),
+            "slots":         max(0, 16 - len(opp_players)),
+            "mandatory":     max(0, 13 - len(opp_players)),
+            "name":          opp["name"],
+            "roster_players": opp_players,
+        }
+
+    my_slots    = max(0, 16 - len(my_roster_players))
+    my_mandatory = max(0, 13 - len(my_roster_players))
+    my_avail    = max(0.0, req.my_purse - 1.0 * max(0, my_mandatory - 1))
+    opp_avail   = sum(
+        max(0.0, float(opp["purse"]) - 1.0 * max(0, agent_states[opp["name"]]["mandatory"] - 1))
+        for opp in req.opponents if opp["name"] in agent_states
+    )
+    rem_vorp = sum(p.get("vorp", 0.0) for p in remaining)
+
+    # Include my own entry in agent_states so PTA helpers (_opp_wtp_max etc.) work
+    agent_states["__me__"] = {
+        "purse":         req.my_purse,
+        "slots":         my_slots,
+        "mandatory":     my_mandatory,
+        "name":          "__me__",
+        "roster_players": my_roster_players,
+    }
+
+    state = {
+        "players_remaining": len(remaining),
+        "cr_per_vorp":       (my_avail + opp_avail) / rem_vorp if rem_vorp > 0 else 0.0,
+        "pool_by_role":      pool_by_role,
+        "agent_states":      agent_states,
+    }
+
+    if req.strategy not in STRATEGY_REGISTRY:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown strategy '{req.strategy}'. Available: {sorted(STRATEGY_REGISTRY)}"
+        )
+
+    cls, _ = STRATEGY_REGISTRY[req.strategy]
+    params  = load_params(req.strategy, evolved=req.evolved)
+    agent   = cls(name="__me__", params=params)
+
+    # If a tourney_id is supplied, replace the fresh MarketAnalyzer with the
+    # session one that has real sale history from /api/advice/sold events.
+    if req.tourney_id:
+        agent._market = _get_session(req.tourney_id)
+
+    # Manually inject auction state onto the agent (override what reset() set)
+    agent.purse      = req.my_purse
+    agent.roster     = [{"player": p, "price": 0.0} for p in my_roster_players]
+    agent.role_counts = {"BAT": 0, "BOWL": 0, "AR": 0, "WK": 0}
+    for p in my_roster_players:
+        role = p.get("role", "BAT")
+        if role in agent.role_counts:
+            agent.role_counts[role] += 1
+
+    bid = round(float(agent.bid(player, state, rnd=1)), 2)
+
+    # ── Decision log — shows exactly why the strategy returned this ceiling ──
+    priority = round(float(agent._target_priority(player, state)), 3)
+    market_mode = agent._market.market_mode
+    cash_per_slot = round(agent.cash_per_slot, 2)
+    log.info(
+        "ADVICE  tourney=%-20s  player=%-22s  strategy=%-26s  "
+        "bid=%5.2f Cr  priority=%.2f  market=%-7s  "
+        "purse=%6.1f  slots=%d  roster_size=%d  opponents=%d",
+        req.tourney_id or "(none)",
+        player.get("auction_name", player["player_name"]),
+        req.strategy,
+        bid, priority, market_mode,
+        req.my_purse, my_slots, len(my_roster_players), len(req.opponents),
+    )
+
+    return {
+        "strategy":        req.strategy,
+        "player_name":     player["player_name"],
+        "auction_name":    player.get("auction_name", player["player_name"]),
+        "recommended_bid": bid,
+        "my_slots":        my_slots,
+        "my_max_bid":      round(float(my_avail), 2),
+    }
+
+
+# ── Sale events (from Spring Boot bot integration) ───────────────────────────
+@app.post("/api/advice/sold")
+def post_sold(event: SoldEvent):
+    """
+    Called by AuctionServiceImpl.closeAuction() after every hammer.
+    Feeds the session MarketAnalyzer so market_mode reflects real price history.
+
+    Spring Boot sends:
+      player_name: AuctionDto.playerName
+      price:       auction.getBidAmount() / 10_000_000.0
+      buyer:       auction.getCurrentWinningTeamName()
+      tourney_id:  auction.getFantasyTourneyId()
+    """
+    pool = _get_pool()
+    name_to_player: dict[str, dict] = {}
+    for p in pool:
+        name_to_player[p["player_name"]] = p
+        if p.get("auction_name") and p["auction_name"] != p["player_name"]:
+            name_to_player[p["auction_name"]] = p
+
+    player = name_to_player.get(event.player_name)
+    if not player:
+        # Unknown player (e.g. a booster lot) — don't fail, just skip
+        return {"ok": True, "known": False, "market_mode": None}
+
+    market = _get_session(event.tourney_id)
+
+    # Derive cr_per_vorp: how much each VORP point is worth at this sale price.
+    # Falls back to 1.0 if vorp is missing to avoid division by zero.
+    vorp = player.get("vorp") or 1.0
+    cr_per_vorp = event.price / vorp
+
+    market.record_sale(player, event.price, event.buyer, cr_per_vorp)
+
+    log.info(
+        "SOLD    tourney=%-20s  player=%-22s  price=%5.2f Cr  buyer=%-20s  "
+        "market_mode=%-7s  sales_so_far=%d",
+        event.tourney_id,
+        player.get("auction_name", player["player_name"]),
+        event.price,
+        event.buyer,
+        market.market_mode,
+        len(market._sales),
+    )
+
+    return {
+        "ok":          True,
+        "known":       True,
+        "player_name": player["player_name"],
+        "auction_name":player.get("auction_name", player["player_name"]),
+        "price":       event.price,
+        "market_mode": market.market_mode,
+        "sales_count": len(market._sales),
+    }
+
+
+@app.delete("/api/session/{tourney_id}")
+def delete_session(tourney_id: str):
+    """
+    Clear the MarketAnalyzer session for a tourney.
+    Call this when the auction ends to free memory.
+    """
+    existed = tourney_id in _sessions
+    _sessions.pop(tourney_id, None)
+    return {"ok": True, "existed": existed}
 
 
 # ── Dev entry point ───────────────────────────────────────────────────────────

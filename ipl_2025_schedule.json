@@ -1,0 +1,372 @@
+[
+  {
+    "match_id": "1473438",
+    "team1": "RCB",
+    "team2": "KKR"
+  },
+  {
+    "match_id": "1473439",
+    "team1": "RR",
+    "team2": "SRH"
+  },
+  {
+    "match_id": "1473440",
+    "team1": "MI",
+    "team2": "CSK"
+  },
+  {
+    "match_id": "1473441",
+    "team1": "DC",
+    "team2": "LSG"
+  },
+  {
+    "match_id": "1473442",
+    "team1": "GT",
+    "team2": "PBKS"
+  },
+  {
+    "match_id": "1473443",
+    "team1": "RR",
+    "team2": "KKR"
+  },
+  {
+    "match_id": "1473444",
+    "team1": "LSG",
+    "team2": "SRH"
+  },
+  {
+    "match_id": "1473445",
+    "team1": "RCB",
+    "team2": "CSK"
+  },
+  {
+    "match_id": "1473446",
+    "team1": "GT",
+    "team2": "MI"
+  },
+  {
+    "match_id": "1473447",
+    "team1": "SRH",
+    "team2": "DC"
+  },
+  {
+    "match_id": "1473448",
+    "team1": "RR",
+    "team2": "CSK"
+  },
+  {
+    "match_id": "1473449",
+    "team1": "MI",
+    "team2": "KKR"
+  },
+  {
+    "match_id": "1473450",
+    "team1": "PBKS",
+    "team2": "LSG"
+  },
+  {
+    "match_id": "1473451",
+    "team1": "RCB",
+    "team2": "GT"
+  },
+  {
+    "match_id": "1473452",
+    "team1": "KKR",
+    "team2": "SRH"
+  },
+  {
+    "match_id": "1473453",
+    "team1": "MI",
+    "team2": "LSG"
+  },
+  {
+    "match_id": "1473454",
+    "team1": "DC",
+    "team2": "CSK"
+  },
+  {
+    "match_id": "1473455",
+    "team1": "PBKS",
+    "team2": "RR"
+  },
+  {
+    "match_id": "1473456",
+    "team1": "KKR",
+    "team2": "LSG"
+  },
+  {
+    "match_id": "1473457",
+    "team1": "GT",
+    "team2": "SRH"
+  },
+  {
+    "match_id": "1473458",
+    "team1": "MI",
+    "team2": "RCB"
+  },
+  {
+    "match_id": "1473459",
+    "team1": "PBKS",
+    "team2": "CSK"
+  },
+  {
+    "match_id": "1473460",
+    "team1": "GT",
+    "team2": "RR"
+  },
+  {
+    "match_id": "1473461",
+    "team1": "RCB",
+    "team2": "DC"
+  },
+  {
+    "match_id": "1473462",
+    "team1": "KKR",
+    "team2": "CSK"
+  },
+  {
+    "match_id": "1473463",
+    "team1": "GT",
+    "team2": "LSG"
+  },
+  {
+    "match_id": "1473464",
+    "team1": "PBKS",
+    "team2": "SRH"
+  },
+  {
+    "match_id": "1473465",
+    "team1": "RCB",
+    "team2": "RR"
+  },
+  {
+    "match_id": "1473466",
+    "team1": "MI",
+    "team2": "DC"
+  },
+  {
+    "match_id": "1473467",
+    "team1": "LSG",
+    "team2": "CSK"
+  },
+  {
+    "match_id": "1473468",
+    "team1": "PBKS",
+    "team2": "KKR"
+  },
+  {
+    "match_id": "1473469",
+    "team1": "DC",
+    "team2": "RR"
+  },
+  {
+    "match_id": "1473470",
+    "team1": "MI",
+    "team2": "SRH"
+  },
+  {
+    "match_id": "1473471",
+    "team1": "PBKS",
+    "team2": "RCB"
+  },
+  {
+    "match_id": "1473472",
+    "team1": "GT",
+    "team2": "DC"
+  },
+  {
+    "match_id": "1473473",
+    "team1": "RR",
+    "team2": "LSG"
+  },
+  {
+    "match_id": "1473474",
+    "team1": "RCB",
+    "team2": "PBKS"
+  },
+  {
+    "match_id": "1473475",
+    "team1": "MI",
+    "team2": "CSK"
+  },
+  {
+    "match_id": "1473476",
+    "team1": "GT",
+    "team2": "KKR"
+  },
+  {
+    "match_id": "1473477",
+    "team1": "DC",
+    "team2": "LSG"
+  },
+  {
+    "match_id": "1473478",
+    "team1": "MI",
+    "team2": "SRH"
+  },
+  {
+    "match_id": "1473479",
+    "team1": "RCB",
+    "team2": "RR"
+  },
+  {
+    "match_id": "1473480",
+    "team1": "SRH",
+    "team2": "CSK"
+  },
+  {
+    "match_id": "1473481",
+    "team1": "PBKS",
+    "team2": "KKR"
+  },
+  {
+    "match_id": "1473482",
+    "team1": "MI",
+    "team2": "LSG"
+  },
+  {
+    "match_id": "1473483",
+    "team1": "RCB",
+    "team2": "DC"
+  },
+  {
+    "match_id": "1473484",
+    "team1": "GT",
+    "team2": "RR"
+  },
+  {
+    "match_id": "1473485",
+    "team1": "DC",
+    "team2": "KKR"
+  },
+  {
+    "match_id": "1473486",
+    "team1": "PBKS",
+    "team2": "CSK"
+  },
+  {
+    "match_id": "1473487",
+    "team1": "MI",
+    "team2": "RR"
+  },
+  {
+    "match_id": "1473488",
+    "team1": "GT",
+    "team2": "SRH"
+  },
+  {
+    "match_id": "1473489",
+    "team1": "RCB",
+    "team2": "CSK"
+  },
+  {
+    "match_id": "1473490",
+    "team1": "RR",
+    "team2": "KKR"
+  },
+  {
+    "match_id": "1473491",
+    "team1": "PBKS",
+    "team2": "LSG"
+  },
+  {
+    "match_id": "1473492",
+    "team1": "DC",
+    "team2": "SRH"
+  },
+  {
+    "match_id": "1473493",
+    "team1": "MI",
+    "team2": "GT"
+  },
+  {
+    "match_id": "1473494",
+    "team1": "KKR",
+    "team2": "CSK"
+  },
+  {
+    "match_id": "1473495",
+    "team1": "PBKS",
+    "team2": "DC"
+  },
+  {
+    "match_id": "1473497",
+    "team1": "PBKS",
+    "team2": "RR"
+  },
+  {
+    "match_id": "1473498",
+    "team1": "GT",
+    "team2": "DC"
+  },
+  {
+    "match_id": "1473499",
+    "team1": "SRH",
+    "team2": "LSG"
+  },
+  {
+    "match_id": "1473500",
+    "team1": "CSK",
+    "team2": "RR"
+  },
+  {
+    "match_id": "1473501",
+    "team1": "MI",
+    "team2": "DC"
+  },
+  {
+    "match_id": "1473502",
+    "team1": "GT",
+    "team2": "LSG"
+  },
+  {
+    "match_id": "1473503",
+    "team1": "SRH",
+    "team2": "RCB"
+  },
+  {
+    "match_id": "1473504",
+    "team1": "GT",
+    "team2": "CSK"
+  },
+  {
+    "match_id": "1473505",
+    "team1": "SRH",
+    "team2": "KKR"
+  },
+  {
+    "match_id": "1473506",
+    "team1": "MI",
+    "team2": "PBKS"
+  },
+  {
+    "match_id": "1473507",
+    "team1": "RCB",
+    "team2": "LSG"
+  },
+  {
+    "match_id": "1473508",
+    "team1": "PBKS",
+    "team2": "RCB"
+  },
+  {
+    "match_id": "1473509",
+    "team1": "MI",
+    "team2": "GT"
+  },
+  {
+    "match_id": "1473510",
+    "team1": "PBKS",
+    "team2": "MI"
+  },
+  {
+    "match_id": "1473511",
+    "team1": "PBKS",
+    "team2": "RCB"
+  },
+  {
+    "match_id": "1485779",
+    "team1": "PBKS",
+    "team2": "DC"
+  }
+]

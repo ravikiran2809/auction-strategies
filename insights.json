@@ -1,190 +1,220 @@
 {
-  "pool_size": 130,
+  "pool_size": 125,
   "tier_counts": {
-    "1": 28,
-    "2": 59,
-    "3": 43
+    "1": 27,
+    "2": 51,
+    "3": 47
   },
   "strategies": {
     "StarChaser": {
-      "win_share": 0.09,
-      "conditional_win_rate": 0.2663,
-      "avg_score": 812.9,
-      "std_score": 53.39,
-      "wins": 45,
-      "participations": 169,
-      "total_auctions": 500,
-      "budget_utilization": 0.979
+      "win_share": 0.02,
+      "conditional_win_rate": 0.0625,
+      "avg_score": 8259.24,
+      "std_score": 753.63,
+      "wins": 1,
+      "participations": 16,
+      "total_auctions": 50,
+      "budget_utilization": 0.87
     },
     "ValueInvestor": {
-      "win_share": 0.054,
-      "conditional_win_rate": 0.1698,
-      "avg_score": 710.31,
-      "std_score": 121.02,
-      "wins": 27,
-      "participations": 159,
-      "total_auctions": 500,
-      "budget_utilization": 0.544
+      "win_share": 0.16,
+      "conditional_win_rate": 0.5333,
+      "avg_score": 9154.59,
+      "std_score": 709.38,
+      "wins": 8,
+      "participations": 15,
+      "total_auctions": 50,
+      "budget_utilization": 0.727
     },
     "DynamicMaximizer": {
       "win_share": 0.0,
       "conditional_win_rate": 0.0,
-      "avg_score": 726.03,
-      "std_score": 39.66,
+      "avg_score": 6997.23,
+      "std_score": 523.05,
       "wins": 0,
-      "participations": 159,
-      "total_auctions": 500,
-      "budget_utilization": 0.521
+      "participations": 14,
+      "total_auctions": 50,
+      "budget_utilization": 0.392
     },
     "ApexPredator": {
-      "win_share": 0.068,
-      "conditional_win_rate": 0.2152,
-      "avg_score": 789.11,
-      "std_score": 44.29,
-      "wins": 34,
-      "participations": 158,
-      "total_auctions": 500,
-      "budget_utilization": 0.998
+      "win_share": 0.0,
+      "conditional_win_rate": 0.0,
+      "avg_score": 7722.08,
+      "std_score": 215.28,
+      "wins": 0,
+      "participations": 11,
+      "total_auctions": 50,
+      "budget_utilization": 0.936
     },
     "BarbellStrategist": {
       "win_share": 0.0,
       "conditional_win_rate": 0.0,
-      "avg_score": 667.27,
-      "std_score": 41.43,
+      "avg_score": 6344.75,
+      "std_score": 298.13,
       "wins": 0,
-      "participations": 163,
-      "total_auctions": 500,
-      "budget_utilization": 0.856
+      "participations": 14,
+      "total_auctions": 50,
+      "budget_utilization": 0.656
     },
     "VampireMaximizer": {
-      "win_share": 0.178,
-      "conditional_win_rate": 0.466,
-      "avg_score": 834.67,
-      "std_score": 31.05,
-      "wins": 89,
-      "participations": 191,
-      "total_auctions": 500,
-      "budget_utilization": 0.866
+      "win_share": 0.06,
+      "conditional_win_rate": 0.375,
+      "avg_score": 8926.42,
+      "std_score": 344.27,
+      "wins": 3,
+      "participations": 8,
+      "total_auctions": 50,
+      "budget_utilization": 0.748
     },
     "TierSniper": {
       "win_share": 0.0,
       "conditional_win_rate": 0.0,
-      "avg_score": 640.86,
-      "std_score": 27.59,
+      "avg_score": 7514.05,
+      "std_score": 319.22,
       "wins": 0,
-      "participations": 169,
-      "total_auctions": 500,
-      "budget_utilization": 0.941
+      "participations": 14,
+      "total_auctions": 50,
+      "budget_utilization": 0.882
     },
     "NominationGambler": {
-      "win_share": 0.094,
-      "conditional_win_rate": 0.3072,
-      "avg_score": 808.09,
-      "std_score": 58.1,
-      "wins": 47,
-      "participations": 153,
-      "total_auctions": 500,
-      "budget_utilization": 0.86
+      "win_share": 0.02,
+      "conditional_win_rate": 0.0714,
+      "avg_score": 8246.91,
+      "std_score": 580.84,
+      "wins": 1,
+      "participations": 14,
+      "total_auctions": 50,
+      "budget_utilization": 0.681
     },
     "PositionalArbitrageur": {
       "win_share": 0.0,
       "conditional_win_rate": 0.0,
-      "avg_score": 684.68,
-      "std_score": 66.37,
+      "avg_score": 7143.9,
+      "std_score": 945.6,
       "wins": 0,
-      "participations": 192,
-      "total_auctions": 500,
-      "budget_utilization": 0.442
+      "participations": 17,
+      "total_auctions": 50,
+      "budget_utilization": 0.509
     },
     "BudgetSweeper": {
       "win_share": 0.0,
       "conditional_win_rate": 0.0,
-      "avg_score": 679.16,
-      "std_score": 41.37,
+      "avg_score": 7011.67,
+      "std_score": 736.88,
       "wins": 0,
-      "participations": 162,
-      "total_auctions": 500,
-      "budget_utilization": 0.576
+      "participations": 17,
+      "total_auctions": 50,
+      "budget_utilization": 0.759
     },
     "FieldAwareAdaptor": {
-      "win_share": 0.24,
-      "conditional_win_rate": 0.7229,
-      "avg_score": 852.92,
-      "std_score": 52.49,
-      "wins": 120,
-      "participations": 166,
-      "total_auctions": 500,
-      "budget_utilization": 0.882
-    },
-    "ContrarianSnapper": {
-      "win_share": 0.16,
-      "conditional_win_rate": 0.4734,
-      "avg_score": 832.38,
-      "std_score": 52.47,
-      "wins": 80,
-      "participations": 169,
-      "total_auctions": 500,
-      "budget_utilization": 0.973
-    },
-    "FieldSniper": {
       "win_share": 0.0,
       "conditional_win_rate": 0.0,
-      "avg_score": 667.16,
-      "std_score": 32.32,
+      "avg_score": 7649.86,
+      "std_score": 672.94,
       "wins": 0,
-      "participations": 161,
-      "total_auctions": 500,
-      "budget_utilization": 0.862
+      "participations": 10,
+      "total_auctions": 50,
+      "budget_utilization": 0.587
+    },
+    "ContrarianSnapper": {
+      "win_share": 0.0,
+      "conditional_win_rate": 0.0,
+      "avg_score": 8330.32,
+      "std_score": 433.55,
+      "wins": 0,
+      "participations": 9,
+      "total_auctions": 50,
+      "budget_utilization": 0.916
+    },
+    "FieldSniper": {
+      "win_share": 0.02,
+      "conditional_win_rate": 0.0526,
+      "avg_score": 7578.27,
+      "std_score": 875.62,
+      "wins": 1,
+      "participations": 19,
+      "total_auctions": 50,
+      "budget_utilization": 0.639
     },
     "VampireSweeper": {
-      "win_share": 0.018,
-      "conditional_win_rate": 0.0497,
-      "avg_score": 777.13,
-      "std_score": 44.0,
-      "wins": 9,
-      "participations": 181,
-      "total_auctions": 500,
-      "budget_utilization": 0.79
+      "win_share": 0.04,
+      "conditional_win_rate": 0.1176,
+      "avg_score": 7307.69,
+      "std_score": 906.47,
+      "wins": 2,
+      "participations": 17,
+      "total_auctions": 50,
+      "budget_utilization": 0.548
     },
     "ContrarianArbitrageur": {
-      "win_share": 0.002,
-      "conditional_win_rate": 0.0063,
-      "avg_score": 652.95,
-      "std_score": 53.74,
-      "wins": 1,
-      "participations": 158,
-      "total_auctions": 500,
-      "budget_utilization": 0.87
+      "win_share": 0.0,
+      "conditional_win_rate": 0.0,
+      "avg_score": 8027.92,
+      "std_score": 718.49,
+      "wins": 0,
+      "participations": 12,
+      "total_auctions": 50,
+      "budget_utilization": 0.774
     },
     "NominationFieldAdaptor": {
-      "win_share": 0.036,
-      "conditional_win_rate": 0.1011,
-      "avg_score": 741.87,
-      "std_score": 81.83,
-      "wins": 18,
-      "participations": 178,
-      "total_auctions": 500,
-      "budget_utilization": 0.668
+      "win_share": 0.06,
+      "conditional_win_rate": 0.1875,
+      "avg_score": 8303.56,
+      "std_score": 1029.89,
+      "wins": 3,
+      "participations": 16,
+      "total_auctions": 50,
+      "budget_utilization": 0.651
     },
     "VampireGambler": {
-      "win_share": 0.034,
-      "conditional_win_rate": 0.1156,
-      "avg_score": 802.13,
-      "std_score": 37.05,
-      "wins": 17,
-      "participations": 147,
-      "total_auctions": 500,
-      "budget_utilization": 0.804
+      "win_share": 0.1,
+      "conditional_win_rate": 0.3571,
+      "avg_score": 8612.51,
+      "std_score": 793.19,
+      "wins": 5,
+      "participations": 14,
+      "total_auctions": 50,
+      "budget_utilization": 0.717
     },
     "ContextualEnsemble": {
-      "win_share": 0.026,
-      "conditional_win_rate": 0.0788,
-      "avg_score": 683.55,
-      "std_score": 97.31,
-      "wins": 13,
-      "participations": 165,
-      "total_auctions": 500,
-      "budget_utilization": 0.622
+      "win_share": 0.08,
+      "conditional_win_rate": 0.3636,
+      "avg_score": 8206.6,
+      "std_score": 1061.49,
+      "wins": 4,
+      "participations": 11,
+      "total_auctions": 50,
+      "budget_utilization": 0.59
+    },
+    "TeamDiversifier": {
+      "win_share": 0.1,
+      "conditional_win_rate": 0.3571,
+      "avg_score": 9073.3,
+      "std_score": 526.71,
+      "wins": 5,
+      "participations": 14,
+      "total_auctions": 50,
+      "budget_utilization": 0.756
+    },
+    "SquadCompletionBidder": {
+      "win_share": 0.3,
+      "conditional_win_rate": 0.75,
+      "avg_score": 9311.33,
+      "std_score": 364.05,
+      "wins": 15,
+      "participations": 20,
+      "total_auctions": 50,
+      "budget_utilization": 0.934
+    },
+    "AdaptiveRecoveryManager": {
+      "win_share": 0.04,
+      "conditional_win_rate": 0.1111,
+      "avg_score": 8197.14,
+      "std_score": 853.42,
+      "wins": 2,
+      "participations": 18,
+      "total_auctions": 50,
+      "budget_utilization": 0.578
     }
   }
 }

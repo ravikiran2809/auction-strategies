@@ -23,6 +23,10 @@ import argparse
 import sys
 from pathlib import Path
 
+# Register PTA (dynamic) strategies into the global registry at startup
+from engine.pta_strategies import register_pta_strategies
+register_pta_strategies()
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def _parse_season_weights(raw: str) -> dict[str, float]:

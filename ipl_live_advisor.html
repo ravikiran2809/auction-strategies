@@ -69,6 +69,19 @@
   .roster-name { font-size: 12px; color: var(--text2); }
   .roster-price { font-size: 11px; font-family: monospace; color: var(--amber); }
   .roster-role { font-size: 10px; color: var(--text3); }
+  .team-badge { display:inline-block; font-size:9px; font-weight:700; letter-spacing:0.04em; padding:1px 5px; border-radius:3px; margin-left:4px; vertical-align:middle; }
+  .tb-CSK { background:#f5c518;color:#000; } .tb-MI { background:#004ba0;color:#fff; }
+  .tb-RCB { background:#c8102e;color:#fff; } .tb-KKR { background:#3a225d;color:#FFD700; }
+  .tb-DC  { background:#0078bc;color:#fff; } .tb-GT  { background:#1c4f91;color:#9fc5e8; }
+  .tb-RR  { background:#254aa5;color:#ff69b4; } .tb-PBKS { background:#d71921;color:#fff; }
+  .tb-LSG { background:#00c5d7;color:#000; } .tb-SRH { background:#ff822a;color:#000; }
+  .tb-UNK { background:var(--surface3);color:var(--text3); }
+  /* Team spread bar */
+  .spread-bar-wrap { background:var(--surface2); border-radius:var(--radius-sm); padding:8px 10px; margin-bottom:8px; }
+  .spread-bar-label { font-size:10px; color:var(--text3); margin-bottom:5px; display:flex; justify-content:space-between; }
+  .spread-bar-track { display:flex; gap:2px; height:8px; border-radius:4px; overflow:hidden; }
+  .spread-bar-seg { flex:1; border-radius:2px; opacity:0.7; }
+  .cv-warning { font-size:10px; color:var(--red); background:rgba(231,76,60,0.1); border-radius:4px; padding:5px 8px; margin-bottom:6px; display:none; }
   .add-btn { width: 100%; background: var(--surface2); border: 1px dashed var(--border2); border-radius: var(--radius-sm); padding: 8px; color: var(--text2); cursor: pointer; font-size: 12px; transition: all 0.15s; text-align: center; }
   .add-btn:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
 
@@ -188,6 +201,20 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
 
+  /* Search dropdown */
+  .search-wrap { position: relative; flex: 2; min-width: 200px; }
+  .search-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius-sm); padding: 7px 10px 7px 32px; font-size: 13px; }
+  .search-input:focus { outline: none; border-color: var(--amber); }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; font-size: 13px; }
+  .search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: var(--text3); cursor: pointer; font-size: 13px; display: none; }
+  .search-clear:hover { color: var(--text); }
+  .search-dropdown { position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius-sm); z-index: 50; max-height: 300px; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+  .search-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border); }
+  .search-item:last-child { border-bottom: none; }
+  .search-item:hover, .search-item.active { background: var(--surface3); }
+  .search-item-name { font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 5px; }
+  .search-item-meta { font-size: 11px; color: var(--text3); white-space: nowrap; }
+
   select option { background: var(--surface2); }
 
   .empty-state { text-align: center; color: var(--text3); font-size: 12px; padding: 16px; }
@@ -250,6 +277,15 @@
         <div class="role-chip"><div class="role-chip-label">WK</div><div class="role-chip-val" id="rc-WK">0</div></div>
       </div>
 
+      <div class="cv-warning" id="cv-warning">⚠️ 3+ players from same franchise — C/VC overlap risk</div>
+      <div class="spread-bar-wrap" id="spread-bar-wrap" style="display:none">
+        <div class="spread-bar-label">
+          <span>Franchise spread</span>
+          <span id="spread-count">0 teams</span>
+        </div>
+        <div class="spread-bar-track" id="spread-bar-track"></div>
+      </div>
+
       <div class="roster-scroll" id="my-roster-list">
         <div class="empty-state">No players yet</div>
       </div>
@@ -274,9 +310,18 @@
     <div class="auction-block">
       <div class="auction-block-title">Player up for auction</div>
       <div class="player-selector">
-        <select id="player-select" onchange="onPlayerSelect(this.value)" style="flex:2">
-          <option value="">— Select player —</option>
-        </select>
+        <div class="search-wrap" id="search-wrap">
+          <span class="search-icon">&#128269;</span>
+          <input type="text" class="search-input" id="player-search"
+            placeholder="Search by name or role…"
+            autocomplete="off"
+            oninput="onPlayerSearch(this.value)"
+            onfocus="onPlayerSearchFocus()"
+            onblur="hideSearchDropdown()"
+            onkeydown="onSearchKey(event)" />
+          <span class="search-clear" id="search-clear" onclick="clearPlayerSearch()">&#10005;</span>
+          <div class="search-dropdown" id="search-dropdown" style="display:none"></div>
+        </div>
         <span style="color:var(--text3);font-size:12px">or enter bid</span>
         <input type="number" id="current-bid-input" placeholder="Current bid ₹Cr" min="0.5" step="0.25" oninput="onBidInput()" style="width:140px;flex:none" />
       </div>
@@ -291,6 +336,10 @@
         <div class="stat-box"><div class="stat-label">Role</div><div class="stat-val blue" id="ps-role">—</div></div>
         <div class="stat-box"><div class="stat-label">VORP</div><div class="stat-val green" id="ps-vorp">—</div></div>
         <div class="stat-box"><div class="stat-label">Std dev</div><div class="stat-val" id="ps-std" style="color:var(--text2)">—</div></div>
+        <div class="stat-box" id="ps-team-box" style="display:none">
+          <div class="stat-label">IPL Franchise</div>
+          <div class="stat-val" id="ps-team" style="font-size:14px">—</div>
+        </div>
       </div>
     </div>
 
@@ -311,6 +360,16 @@
       </div>
       <div id="dominant-consensus" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"></div>
       <div class="bid-range" id="bid-range-viz"></div>
+    </div>
+
+    <!-- Dynamic PTA Advice (live Python strategies) -->
+    <div class="strategy-block" id="pta-advice-block" style="display:none">
+      <div class="auction-block-title" style="margin-bottom:0">
+        Dynamic strategy advice
+        <span style="font-size:10px;color:var(--green);margin-left:6px">&#9679; live Python</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Real bid from PTA strategies — uses your actual roster, opponent states, and live market signals</div>
+      <div id="pta-advice-rows" class="strategy-rows"></div>
     </div>
 
     <!-- Strategy comparison -->
@@ -349,7 +408,8 @@
     <h3 id="add-player-title">Add player to roster</h3>
     <div id="modal-pool-group" class="form-group">
       <label class="form-label">Player</label>
-      <select id="modal-player-select" class="form-input">
+      <input type="text" id="modal-search-input" class="form-input" placeholder="Search player…" oninput="filterModalSelect(this.value)" style="margin-bottom:6px" />
+      <select id="modal-player-select" class="form-input" size="6">
         <option value="">— Select —</option>
       </select>
       <div style="text-align:right;margin-top:4px"><a href="#" style="font-size:11px;color:var(--blue)" onclick="toggleCustomPlayer(event)">Not in pool? Add custom ▸</a></div>
@@ -426,6 +486,13 @@
 // ─── DATA ───────────────────────────────────────────
 let POOL = []; // loaded from server or static fallback
 const STATIC_POOL = [{"player_name":"SP Narine","role":"AR","projected_points":143.5,"std_dev":81.0,"vorp":73.4,"tier":1,"matches":14},{"player_name":"M Pathirana","role":"BOWL","projected_points":123.3,"std_dev":80.5,"vorp":77.9,"tier":1,"matches":6},{"player_name":"JJ Bumrah","role":"BOWL","projected_points":114.1,"std_dev":119.5,"vorp":68.6,"tier":1,"matches":13},{"player_name":"AD Russell","role":"AR","projected_points":97.4,"std_dev":67.8,"vorp":27.4,"tier":1,"matches":14},{"player_name":"V Kohli","role":"BAT","projected_points":96.9,"std_dev":60.4,"vorp":63.1,"tier":1,"matches":15},{"player_name":"HV Patel","role":"BOWL","projected_points":95.4,"std_dev":75.8,"vorp":50.0,"tier":1,"matches":14},{"player_name":"Mukesh Kumar","role":"BOWL","projected_points":94.8,"std_dev":72.9,"vorp":49.4,"tier":1,"matches":10},{"player_name":"SM Curran","role":"AR","projected_points":86.2,"std_dev":58.1,"vorp":16.2,"tier":1,"matches":13},{"player_name":"PD Salt","role":"BAT","projected_points":84.8,"std_dev":66.0,"vorp":51.0,"tier":1,"matches":12},{"player_name":"CV Varun","role":"BOWL","projected_points":84.6,"std_dev":70.8,"vorp":39.2,"tier":1,"matches":14},{"player_name":"Harshit Rana","role":"BOWL","projected_points":83.3,"std_dev":71.2,"vorp":37.9,"tier":1,"matches":12},{"player_name":"Sandeep Sharma","role":"BOWL","projected_points":82.0,"std_dev":116.7,"vorp":36.6,"tier":1,"matches":10},{"player_name":"Kuldeep Yadav","role":"BOWL","projected_points":81.8,"std_dev":70.4,"vorp":36.4,"tier":1,"matches":11},{"player_name":"Mustafizur Rahman","role":"BOWL","projected_points":81.7,"std_dev":67.8,"vorp":36.2,"tier":1,"matches":9},{"player_name":"AR Patel","role":"AR","projected_points":80.6,"std_dev":52.7,"vorp":10.6,"tier":1,"matches":14},{"player_name":"R Sai Kishore","role":"BAT","projected_points":78.4,"std_dev":86.1,"vorp":44.6,"tier":2,"matches":5},{"player_name":"RA Jadeja","role":"AR","projected_points":75.7,"std_dev":83.5,"vorp":5.6,"tier":2,"matches":14},{"player_name":"PJ Cummins","role":"BOWL","projected_points":75.4,"std_dev":49.1,"vorp":29.9,"tier":2,"matches":16},{"player_name":"J Fraser-McGurk","role":"BAT","projected_points":75.3,"std_dev":55.1,"vorp":41.5,"tier":2,"matches":10},{"player_name":"C Green","role":"AR","projected_points":74.4,"std_dev":61.8,"vorp":4.3,"tier":2,"matches":13},{"player_name":"N Pooran","role":"BAT","projected_points":74.4,"std_dev":51.7,"vorp":40.6,"tier":2,"matches":14},{"player_name":"MA Starc","role":"BOWL","projected_points":72.3,"std_dev":86.3,"vorp":26.9,"tier":2,"matches":13},{"player_name":"RR Pant","role":"BAT","projected_points":72.1,"std_dev":52.0,"vorp":38.3,"tier":2,"matches":13},{"player_name":"B Sai Sudharsan","role":"BAT","projected_points":71.6,"std_dev":60.5,"vorp":37.8,"tier":2,"matches":12},{"player_name":"T Natarajan","role":"BOWL","projected_points":71.1,"std_dev":90.1,"vorp":25.6,"tier":2,"matches":14},{"player_name":"Abhishek Sharma","role":"BAT","projected_points":70.9,"std_dev":54.3,"vorp":37.1,"tier":2,"matches":16},{"player_name":"RD Gaikwad","role":"BAT","projected_points":70.5,"std_dev":66.1,"vorp":36.7,"tier":2,"matches":14},{"player_name":"KL Rahul","role":"BAT","projected_points":69.1,"std_dev":45.9,"vorp":35.4,"tier":2,"matches":14},{"player_name":"R Parag","role":"BAT","projected_points":68.9,"std_dev":50.3,"vorp":35.1,"tier":2,"matches":15},{"player_name":"TM Head","role":"BAT","projected_points":68.3,"std_dev":74.0,"vorp":34.5,"tier":2,"matches":15},{"player_name":"RD Chahar","role":"BOWL","projected_points":66.2,"std_dev":86.4,"vorp":20.8,"tier":2,"matches":9},{"player_name":"SV Samson","role":"BAT","projected_points":65.8,"std_dev":61.0,"vorp":32.0,"tier":2,"matches":15},{"player_name":"Avesh Khan","role":"BOWL","projected_points":65.4,"std_dev":61.7,"vorp":20.0,"tier":2,"matches":15},{"player_name":"TU Deshpande","role":"BOWL","projected_points":65.4,"std_dev":75.3,"vorp":20.0,"tier":2,"matches":13},{"player_name":"Rashid Khan","role":"BOWL","projected_points":65.3,"std_dev":41.8,"vorp":19.9,"tier":2,"matches":12},{"player_name":"N Burger","role":"BAT","projected_points":65.0,"std_dev":23.5,"vorp":31.2,"tier":2,"matches":5},{"player_name":"MP Stoinis","role":"BAT","projected_points":64.6,"std_dev":67.2,"vorp":30.8,"tier":2,"matches":14},{"player_name":"Tilak Varma","role":"BAT","projected_points":64.5,"std_dev":40.4,"vorp":30.7,"tier":2,"matches":13},{"player_name":"PP Chawla","role":"BOWL","projected_points":64.4,"std_dev":69.5,"vorp":18.9,"tier":2,"matches":11},{"player_name":"N Thushara","role":"BOWL","projected_points":64.3,"std_dev":92.3,"vorp":18.9,"tier":2,"matches":7},{"player_name":"T Stubbs","role":"BAT","projected_points":63.9,"std_dev":56.7,"vorp":30.1,"tier":2,"matches":14},{"player_name":"S Sandeep Warrier","role":"BAT","projected_points":63.0,"std_dev":84.7,"vorp":29.2,"tier":2,"matches":5},{"player_name":"Naveen-ul-Haq","role":"BOWL","projected_points":62.7,"std_dev":47.7,"vorp":17.3,"tier":2,"matches":10},{"player_name":"WG Jacks","role":"BAT","projected_points":62.1,"std_dev":71.6,"vorp":28.3,"tier":2,"matches":8},{"player_name":"TA Boult","role":"BOWL","projected_points":61.4,"std_dev":64.0,"vorp":16.0,"tier":2,"matches":15},{"player_name":"F du Plessis","role":"BAT","projected_points":61.1,"std_dev":46.7,"vorp":27.3,"tier":2,"matches":15},{"player_name":"SA Yadav","role":"BAT","projected_points":60.6,"std_dev":76.5,"vorp":26.8,"tier":2,"matches":11},{"player_name":"Yash Thakur","role":"BOWL","projected_points":60.0,"std_dev":134.9,"vorp":14.6,"tier":2,"matches":10},{"player_name":"H Klaasen","role":"BAT","projected_points":59.6,"std_dev":59.4,"vorp":25.8,"tier":2,"matches":16},{"player_name":"LS Livingstone","role":"BAT","projected_points":59.0,"std_dev":56.2,"vorp":25.2,"tier":2,"matches":7},{"player_name":"KK Ahmed","role":"BOWL","projected_points":58.6,"std_dev":54.6,"vorp":13.1,"tier":2,"matches":14},{"player_name":"G Coetzee","role":"BOWL","projected_points":58.1,"std_dev":80.7,"vorp":12.7,"tier":2,"matches":10},{"player_name":"YS Chahal","role":"BOWL","projected_points":58.0,"std_dev":58.0,"vorp":12.6,"tier":3,"matches":15},{"player_name":"RR Rossouw","role":"BAT","projected_points":57.9,"std_dev":52.2,"vorp":24.1,"tier":3,"matches":8},{"player_name":"S Dube","role":"BAT","projected_points":57.1,"std_dev":48.1,"vorp":23.4,"tier":3,"matches":14},{"player_name":"HH Pandya","role":"AR","projected_points":57.1,"std_dev":52.5,"vorp":0.0,"tier":3,"matches":14},{"player_name":"Arshdeep Singh","role":"BOWL","projected_points":56.8,"std_dev":60.9,"vorp":11.4,"tier":3,"matches":14},{"player_name":"I Sharma","role":"BOWL","projected_points":56.8,"std_dev":63.4,"vorp":11.3,"tier":3,"matches":9},{"player_name":"Shubman Gill","role":"BAT","projected_points":56.5,"std_dev":67.7,"vorp":22.7,"tier":3,"matches":12},{"player_name":"LH Ferguson","role":"BOWL","projected_points":55.1,"std_dev":48.3,"vorp":9.7,"tier":3,"matches":7},{"player_name":"RM Patidar","role":"BAT","projected_points":55.1,"std_dev":51.6,"vorp":21.3,"tier":3,"matches":15},{"player_name":"JM Bairstow","role":"BAT","projected_points":54.5,"std_dev":66.4,"vorp":20.7,"tier":3,"matches":11},{"player_name":"K Rabada","role":"BOWL","projected_points":54.5,"std_dev":43.9,"vorp":9.0,"tier":3,"matches":11},{"player_name":"YBK Jaiswal","role":"BAT","projected_points":54.1,"std_dev":56.1,"vorp":20.3,"tier":3,"matches":15},{"player_name":"JC Buttler","role":"BAT","projected_points":54.0,"std_dev":77.1,"vorp":20.2,"tier":3,"matches":11},{"player_name":"Yash Dayal","role":"BOWL","projected_points":53.2,"std_dev":62.7,"vorp":7.8,"tier":3,"matches":14},{"player_name":"RG Sharma","role":"BAT","projected_points":53.1,"std_dev":61.0,"vorp":19.3,"tier":3,"matches":14},{"player_name":"SS Iyer","role":"BAT","projected_points":52.4,"std_dev":38.2,"vorp":18.6,"tier":3,"matches":14},{"player_name":"VR Iyer","role":"BAT","projected_points":52.0,"std_dev":47.2,"vorp":18.2,"tier":3,"matches":14},{"player_name":"VG Arora","role":"BOWL","projected_points":51.6,"std_dev":62.1,"vorp":6.2,"tier":3,"matches":10},{"player_name":"Mohammed Siraj","role":"BOWL","projected_points":51.5,"std_dev":51.2,"vorp":6.1,"tier":3,"matches":14},{"player_name":"DA Miller","role":"BAT","projected_points":51.2,"std_dev":40.2,"vorp":17.4,"tier":3,"matches":9},{"player_name":"Shashank Singh","role":"BAT","projected_points":51.0,"std_dev":48.5,"vorp":17.2,"tier":3,"matches":14},{"player_name":"Rasikh Salam","role":"BOWL","projected_points":50.9,"std_dev":86.3,"vorp":5.4,"tier":3,"matches":8},{"player_name":"R Ravindra","role":"BAT","projected_points":50.3,"std_dev":50.9,"vorp":16.5,"tier":3,"matches":10},{"player_name":"RA Tripathi","role":"BAT","projected_points":50.0,"std_dev":49.4,"vorp":16.2,"tier":3,"matches":6},{"player_name":"Nithish Kumar Reddy","role":"BAT","projected_points":50.0,"std_dev":61.7,"vorp":16.2,"tier":3,"matches":13},{"player_name":"Akash Madhwal","role":"BAT","projected_points":49.8,"std_dev":97.3,"vorp":16.0,"tier":3,"matches":5},{"player_name":"DJ Mitchell","role":"BAT","projected_points":49.6,"std_dev":42.6,"vorp":15.8,"tier":3,"matches":13},{"player_name":"Swapnil Singh","role":"BAT","projected_points":49.4,"std_dev":29.8,"vorp":15.6,"tier":3,"matches":7}];
+
+// ─── DISPLAY NAME ────────────────────────────────────
+// Always show the auction-friendly name (from player_master.json)
+// while keeping csv_name as the internal key for lookups.
+function displayName(p) {
+  return p.auction_name || p.player_name;
+}
 
 // ─── SERVER ─────────────────────────────────────────
 const API = 'http://127.0.0.1:8080';
@@ -611,7 +678,33 @@ async function initData() {
   } else {
     POOL = STATIC_POOL;
   }
-  loadState(); // restore persisted roster/opponents after pool is available
+  // Restore persisted state — prefer localStorage (instant), fall back to server
+  const hasLocal = !!(() => { try { return localStorage.getItem(STORAGE_KEY); } catch { return null; } })();
+  if (hasLocal) {
+    loadState(); // in-memory restore from localStorage
+  } else if (serverOnline) {
+    // No local storage — try to load from server (e.g. new device / cleared storage)
+    try {
+      const sr = await fetch(API + '/api/state', {signal: AbortSignal.timeout(2000)});
+      if (sr.ok) {
+        const saved = await sr.json();
+        if (saved && saved.me) {
+          const byName = {};
+          POOL.forEach(p => { byName[p.player_name] = p; if (p.auction_name) byName[p.auction_name] = p; });
+          if (saved.me.purse != null) me.purse = saved.me.purse;
+          (saved.me.roster || []).forEach(r => {
+            const p = byName[r.player_name] || byName[r.auction_name];
+            if (p) { me.roster.push({p, price: r.price}); me.roleCounts[p.role]++; soldPlayers.add(p.player_name); }
+          });
+          opponents = (saved.opponents || []).map(o => ({
+            id: 'opp_' + Date.now() + Math.random(),
+            name: o.name, purse: o.purse,
+            roster: (o.roster || []).flatMap(n => { const p = byName[n]; return p ? [{p, price: 0}] : []; }),
+          }));
+        }
+      }
+    } catch { /* server state unavailable */ }
+  }
   populatePlayerSelect();
   render();
 }
@@ -927,17 +1020,50 @@ function renderMyTeam() {
   if (me.roster.length === 0) {
     list.innerHTML = '<div class="empty-state">No players yet</div>'; return;
   }
-  list.innerHTML = me.roster.map(r => `
+  list.innerHTML = me.roster.map(r => {
+    const team = r.p.ipl_team || 'UNK';
+    return `
     <div class="roster-item">
       <div>
-        <div class="roster-name">${r.p.player_name}</div>
+        <div class="roster-name">${r.p.player_name}<span class="team-badge tb-${team}">${team}</span></div>
         <div class="roster-role">${r.p.role} · T${r.p.tier}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span class="roster-price">₹${r.price.toFixed(2)}</span>
         <span style="cursor:pointer;color:var(--text3);font-size:11px" onclick="removeMyPlayer('${r.p.player_name}')">✕</span>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+
+  // Team spread bar
+  const TEAM_COLORS = {CSK:'#f5c518',MI:'#004ba0',RCB:'#c8102e',KKR:'#3a225d',
+    DC:'#0078bc',GT:'#1c4f91',RR:'#254aa5',PBKS:'#d71921',LSG:'#00c5d7',SRH:'#ff822a'};
+  const teamCounts = {};
+  me.roster.forEach(r => { const t = r.p.ipl_team||'UNK'; teamCounts[t]=(teamCounts[t]||0)+1; });
+  const uniqueTeams = Object.keys(teamCounts).filter(t => t !== 'UNK');
+  const spreadWrap = document.getElementById('spread-bar-wrap');
+  const spreadTrack = document.getElementById('spread-bar-track');
+  const spreadCount = document.getElementById('spread-count');
+  if (uniqueTeams.length > 0) {
+    spreadWrap.style.display = '';
+    spreadCount.textContent = `${uniqueTeams.length} franchise${uniqueTeams.length>1?'s':''}`;
+    spreadTrack.innerHTML = uniqueTeams.map(t =>
+      `<div class="spread-bar-seg" style="background:${TEAM_COLORS[t]||'#666'}" title="${t}: ${teamCounts[t]}"></div>`
+    ).join('');
+  } else {
+    spreadWrap.style.display = 'none';
+  }
+
+  // C/VC warning: any franchise with 3+ players
+  const cvWarn = document.getElementById('cv-warning');
+  const saturated = Object.entries(teamCounts).filter(([t,c]) => t!=='UNK' && c>=3);
+  if (saturated.length > 0) {
+    cvWarn.style.display = '';
+    const names = saturated.map(([t,c])=>`${t}(${c})`).join(', ');
+    cvWarn.textContent = `⚠️ C/VC overlap: ${names} — 3+ players from same franchise`;
+  } else {
+    cvWarn.style.display = 'none';
+  }
 }
 
 function renderOpponents() {
@@ -1002,6 +1128,21 @@ function renderAnalysis(player) {
   document.getElementById('ps-role').textContent = player.role;
   document.getElementById('ps-vorp').textContent = player.vorp.toFixed(1);
   document.getElementById('ps-std').textContent = player.std_dev.toFixed(0);
+
+  // Team badge on player card
+  const psTeamBox = document.getElementById('ps-team-box');
+  const psTeam = document.getElementById('ps-team');
+  if (player.ipl_team && player.ipl_team !== 'UNK') {
+    psTeamBox.style.display = '';
+    psTeam.innerHTML = `<span class="team-badge tb-${player.ipl_team}" style="font-size:13px;padding:3px 8px">${player.ipl_team}</span>`;
+    // Warn if we already have 2+ from this team
+    const alreadyCount = me.roster.filter(r => r.p.ipl_team === player.ipl_team).length;
+    if (alreadyCount >= 2) {
+      psTeam.innerHTML += ` <span style="color:var(--amber);font-size:9px">${alreadyCount} already</span>`;
+    }
+  } else {
+    psTeamBox.style.display = 'none';
+  }
 
   // Strategy badge in title
   const badge = document.getElementById('rec-strategy-badge');
@@ -1070,7 +1211,7 @@ function renderAnalysis(player) {
   // Bid range viz
   renderBidRange(rec, player);
 
-  // Strategy comparison — show dominant MC strategies with JS-equivalent bids
+  // Strategy comparison
   document.getElementById('strat-block').style.display = 'block';
   const stratColors = { TierSniper:'var(--amber)', NominGambler:'var(--blue)', DynamicMath:'var(--green)', PosArbitrageur:'var(--teal)', StarChaser:'var(--purple)', ValueInvestor:'var(--text2)' };
   if (rec.dominantBids && rec.dominantBids.length) {
@@ -1116,6 +1257,9 @@ function renderAnalysis(player) {
         </div>`;
       }).join('');
   }
+
+  // Live dynamic advice from Python PTA strategies (async)
+  loadPTAAdvice(player);
 }
 
 function renderBidRange(rec, player) {
@@ -1146,39 +1290,248 @@ function renderBidRange(rec, player) {
     </div>`;
 }
 
-// ─── PLAYER SELECT DROPDOWN ─────────────────────────
-function populatePlayerSelect() {
+// ─── PLAYER SEARCH ──────────────────────────────────
+let _searchResults = [];
+let _searchActiveIdx = -1;
+
+function onPlayerSearch(query) {
+  _searchActiveIdx = -1;
+  const q = query.trim().toLowerCase();
   const pool = remainingPool();
-  const sel = document.getElementById('player-select');
-  const grouped = {};
-  pool.forEach(p => { (grouped[p.role] = grouped[p.role]||[]).push(p); });
-  sel.innerHTML = '<option value="">— Select player up for auction —</option>';
-  ['AR','BAT','BOWL','WK'].forEach(role => {
-    if (!grouped[role]) return;
+  _searchResults = !q
+    ? pool.slice(0, 40)
+    : pool.filter(p =>
+        displayName(p).toLowerCase().includes(q) ||
+        p.player_name.toLowerCase().includes(q) ||
+        p.role.toLowerCase() === q
+      ).slice(0, 30);
+  renderSearchDropdown();
+  document.getElementById('search-clear').style.display = query ? 'block' : 'none';
+  if (_searchResults.length) showSearchDropdown();
+  else hideSearchDropdown();
+}
+
+function onPlayerSearchFocus() {
+  if (!_searchResults.length) onPlayerSearch('');
+  if (_searchResults.length) showSearchDropdown();
+}
+
+function renderSearchDropdown() {
+  const dd = document.getElementById('search-dropdown');
+  if (!_searchResults.length) {
+    dd.innerHTML = '<div style="padding:10px 12px;color:var(--text3);font-size:12px">No players found</div>';
+    return;
+  }
+  const tierColors = {1:'var(--amber)',2:'var(--blue)',3:'var(--text3)'};
+  dd.innerHTML = _searchResults.map((p, i) => {
+    const name = displayName(p);
+    const teamBadge = p.ipl_team ? `<span class="team-badge tb-${p.ipl_team}">${p.ipl_team}</span>` : '';
+    return `<div class="search-item ${i===_searchActiveIdx?'active':''}" onmousedown="selectPlayerFromSearch('${p.player_name}')">
+      <span class="search-item-name">${name}${teamBadge}</span>
+      <span class="search-item-meta" style="color:${tierColors[p.tier]||'var(--text3)'}">T${p.tier} ${p.role} · ${p.projected_points.toFixed(0)}pts</span>
+    </div>`;
+  }).join('');
+}
+
+function showSearchDropdown() {
+  const dd = document.getElementById('search-dropdown');
+  if (dd) dd.style.display = 'block';
+}
+
+function hideSearchDropdown() {
+  setTimeout(() => {
+    const dd = document.getElementById('search-dropdown');
+    if (dd) dd.style.display = 'none';
+  }, 200);
+}
+
+function onSearchKey(e) {
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _searchActiveIdx = Math.min(_searchActiveIdx + 1, _searchResults.length - 1);
+    renderSearchDropdown(); showSearchDropdown();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _searchActiveIdx = Math.max(_searchActiveIdx - 1, 0);
+    renderSearchDropdown();
+  } else if (e.key === 'Enter') {
+    const target = _searchActiveIdx >= 0 ? _searchResults[_searchActiveIdx] : (_searchResults.length === 1 ? _searchResults[0] : null);
+    if (target) selectPlayerFromSearch(target.player_name);
+  } else if (e.key === 'Escape') {
+    hideSearchDropdown();
+  }
+}
+
+function selectPlayerFromSearch(csvName) {
+  const p = POOL.find(pl => pl.player_name === csvName);
+  if (!p) return;
+  const input = document.getElementById('player-search');
+  if (input) { input.value = displayName(p); document.getElementById('search-clear').style.display = 'block'; }
+  hideSearchDropdown();
+  currentPlayer = p;
+  document.getElementById('current-bid-input').value = '';
+  renderAnalysis(currentPlayer);
+}
+
+function clearPlayerSearch() {
+  const input = document.getElementById('player-search');
+  if (input) input.value = '';
+  document.getElementById('search-clear').style.display = 'none';
+  currentPlayer = null;
+  _searchResults = [];
+  hideSearchDropdown();
+  document.getElementById('player-stats').style.display = 'none';
+  document.getElementById('rec-block').style.display = 'none';
+  document.getElementById('strat-block').style.display = 'none';
+  document.getElementById('pressure-block').style.display = 'none';
+  document.getElementById('pta-advice-block').style.display = 'none';
+}
+
+// Modal player search filter
+function filterModalSelect(query) {
+  const q = query.trim().toLowerCase();
+  const pool = remainingPool();
+  const filtered = !q ? pool : pool.filter(p =>
+    displayName(p).toLowerCase().includes(q) || p.player_name.toLowerCase().includes(q) || p.role.toLowerCase() === q
+  );
+  const msel = document.getElementById('modal-player-select');
+  msel.innerHTML = '<option value="">— Select —</option>';
+  [1, 2, 3].forEach(tier => {
+    const tp = filtered.filter(p => p.tier === tier).sort((a,b) => b.projected_points - a.projected_points);
+    if (!tp.length) return;
     const og = document.createElement('optgroup');
-    og.label = role;
-    grouped[role].forEach(p => {
+    og.label = `T${tier} — ${['Elite','Solid','Depth'][tier-1]}`;
+    tp.forEach(p => {
       const o = document.createElement('option');
       o.value = p.player_name;
-      o.textContent = `${p.player_name} (T${p.tier} · ${p.projected_points.toFixed(0)}pts)`;
+      o.textContent = `${displayName(p)} (${p.role} · ${p.projected_points.toFixed(0)}pts)`;
       og.appendChild(o);
     });
-    sel.appendChild(og);
+    msel.appendChild(og);
   });
+}
 
-  // Modal select
+// ─── STATE SYNC TO SERVER ────────────────────────────
+async function syncStateToServer() {
+  if (!serverOnline) return;
+  try {
+    await fetch(API + '/api/state', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        me: {
+          purse: me.purse,
+          roster: me.roster.map(r => ({
+            player_name: r.p.player_name,
+            auction_name: displayName(r.p),
+            role: r.p.role,
+            price: r.price
+          }))
+        },
+        opponents: opponents.map(o => ({
+          name: o.name,
+          purse: o.purse,
+          roster: o.roster.map(r => r.p.player_name)
+        }))
+      })
+    });
+  } catch { /* server unavailable — ignore */ }
+}
+
+// ─── LIVE PTA ADVICE ─────────────────────────────────
+async function loadPTAAdvice(player) {
+  const block = document.getElementById('pta-advice-block');
+  if (!block) return;
+  if (!serverOnline || !player) { block.style.display = 'none'; return; }
+  block.style.display = 'block';
+  document.getElementById('pta-advice-rows').innerHTML =
+    '<div style="color:var(--text3);font-size:11px;padding:6px 0">Fetching dynamic advice…</div>';
+
+  const myRoster = me.roster.map(r => r.p.player_name);
+  const opps = opponents.map(o => ({
+    name: o.name, purse: o.purse,
+    roster: o.roster.map(r => r.p.player_name)
+  }));
+
+  const strategies = ['SquadCompletionBidder', 'AdaptiveRecoveryManager'];
+  const results = await Promise.all(strategies.map(async strat => {
+    try {
+      const r = await fetch(API + '/api/advice', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          player_name: player.player_name,
+          my_purse: me.purse,
+          my_roster: myRoster,
+          opponents: opps,
+          strategy: strat,
+          evolved: true
+        }),
+        signal: AbortSignal.timeout(5000)
+      });
+      if (!r.ok) return null;
+      return {...(await r.json()), strategy: strat};
+    } catch { return null; }
+  }));
+
+  renderPTAAdvice(results.filter(Boolean), player);
+}
+
+function renderPTAAdvice(results, player) {
+  const block = document.getElementById('pta-advice-block');
+  if (!results.length) { if (block) block.style.display = 'none'; return; }
+  if (block) block.style.display = 'block';
+  const maxBid = Math.max(...results.map(r => r.recommended_bid), 1);
+  const labels = {
+    SquadCompletionBidder:  'Squad Completion ▸',
+    AdaptiveRecoveryManager:'Adaptive Recovery ▸',
+  };
+  const colors = {
+    SquadCompletionBidder:  'var(--green)',
+    AdaptiveRecoveryManager:'var(--purple)',
+  };
+  const basePr = player.base_price || 1.0;
+  document.getElementById('pta-advice-rows').innerHTML = results.map(r => {
+    const pct = (r.recommended_bid / Math.max(1, maxBid) * 100).toFixed(0);
+    const bidColor = r.recommended_bid > basePr * 1.1 ? colors[r.strategy] : 'var(--text3)';
+    return `<div class="strat-row">
+      <div class="strat-name" style="color:${colors[r.strategy]};font-size:11px">${labels[r.strategy]||r.strategy}</div>
+      <div class="strat-bar-wrap"><div class="strat-bar" style="width:${pct}%;background:${colors[r.strategy]}"></div></div>
+      <div class="strat-bid" style="color:${bidColor}">₹${r.recommended_bid.toFixed(2)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── PLAYER SELECT DROPDOWN ─────────────────────────
+// Main player selector is now a live search input; this only populates the modal.
+function populatePlayerSelect() {
   const msel = document.getElementById('modal-player-select');
-  msel.innerHTML = '<option value="">— Select player —</option>';
-  pool.forEach(p => {
-    const o = document.createElement('option');
-    o.value = p.player_name;
-    o.textContent = `${p.player_name} (${p.role})`;
-    msel.appendChild(o);
+  if (!msel) return;
+  const pool = remainingPool();
+  msel.innerHTML = '<option value="">— Select —</option>';
+  [1, 2, 3].forEach(tier => {
+    const tp = pool.filter(p => p.tier === tier).sort((a,b) => b.projected_points - a.projected_points);
+    if (!tp.length) return;
+    const og = document.createElement('optgroup');
+    og.label = `T${tier} — ${['Elite','Solid','Depth'][tier-1]}`;
+    tp.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.player_name;
+      o.textContent = `${displayName(p)} (${p.role} · ${p.projected_points.toFixed(0)}pts)`;
+      og.appendChild(o);
+    });
+    msel.appendChild(og);
   });
 }
 
 function onPlayerSelect(name) {
-  if (!name) { currentPlayer = null; document.getElementById('player-stats').style.display='none'; document.getElementById('rec-block').style.display='none'; document.getElementById('strat-block').style.display='none'; document.getElementById('pressure-block').style.display='none'; return; }
+  if (!name) {
+    currentPlayer = null;
+    ['player-stats','rec-block','strat-block','pressure-block','pta-advice-block'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.style.display = 'none';
+    });
+    return;
+  }
   currentPlayer = POOL.find(p => p.player_name === name);
   document.getElementById('current-bid-input').value = '';
   renderAnalysis(currentPlayer);
@@ -1233,8 +1586,10 @@ function confirmAddPlayer() {
   }
   closeModal('add-player-modal');
   saveState();
+  syncStateToServer();
   populatePlayerSelect();
-  if (currentPlayer && currentPlayer.player_name === name) { currentPlayer = null; document.getElementById('player-select').value = ''; document.getElementById('player-stats').style.display='none'; document.getElementById('rec-block').style.display='none'; document.getElementById('strat-block').style.display='none'; document.getElementById('pressure-block').style.display='none'; }
+  // Clear main search if the selected player was just sold
+  if (currentPlayer && currentPlayer.player_name === name) { clearPlayerSearch(); }
   render();
 }
 
@@ -1255,6 +1610,7 @@ function removeMyPlayer(name) {
   me.roleCounts[entry.p.role]--;
   soldPlayers.delete(name);
   saveState();
+  syncStateToServer();
   populatePlayerSelect();
   render();
 }
@@ -1273,6 +1629,7 @@ function confirmAddOpponent() {
   opponents.push({ id: 'opp_'+Date.now(), name, purse, roster: [] });
   closeModal('add-opp-modal');
   saveState();
+  syncStateToServer();
   render();
 }
 
@@ -1281,6 +1638,7 @@ function removeOpponent(id) {
   if (opp) opp.roster.forEach(r => soldPlayers.delete(r.p.player_name));
   opponents = opponents.filter(o=>o.id!==id);
   saveState();
+  syncStateToServer();
   populatePlayerSelect();
   render();
 }
@@ -1298,12 +1656,15 @@ function resetAll() {
   me = { purse: 120, roster: [], roleCounts: {BAT:0,BOWL:0,AR:0,WK:0} };
   opponents = []; soldPlayers = new Set(); currentPlayer = null;
   try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
-  document.getElementById('player-select').value = '';
+  const psearch = document.getElementById('player-search');
+  if (psearch) psearch.value = '';
+  const sclear = document.getElementById('search-clear');
+  if (sclear) sclear.style.display = 'none';
   document.getElementById('current-bid-input').value = '';
-  document.getElementById('player-stats').style.display='none';
-  document.getElementById('rec-block').style.display='none';
-  document.getElementById('strat-block').style.display='none';
-  document.getElementById('pressure-block').style.display='none';
+  ['player-stats','rec-block','strat-block','pressure-block','pta-advice-block'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+  syncStateToServer();
   populatePlayerSelect(); render();
 }
 

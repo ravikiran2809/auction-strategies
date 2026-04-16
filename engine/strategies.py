@@ -25,9 +25,20 @@ from dataclasses import dataclass, field, fields, asdict
 from pathlib import Path
 from typing import Optional
 
-_DEFAULT_PARAMS_PATH = Path(__file__).parent.parent / "strategy_params.json"
+_DEFAULT_PARAMS_PATH  = Path(__file__).parent.parent / "strategy_params.json"
+_SCHEDULE_PATH        = Path(__file__).parent.parent / "ipl_2025_schedule.json"
 
 POOL_SIZE = 130  # used by ValueInvestor urgency scaler
+
+
+def _load_schedule() -> list[dict]:
+    if _SCHEDULE_PATH.exists():
+        with open(_SCHEDULE_PATH) as f:
+            return json.load(f)
+    return []
+
+
+SCHEDULE: list[dict] = _load_schedule()
 
 
 # ── Param bounds metadata ────────────────────────────────────────────────────
@@ -123,11 +134,23 @@ class Manager:
         return None
 
     def season_score(self) -> float:
-        """Sum of top-11 projected_points — unified fitness metric."""
-        pts = sorted(
-            (e["player"]["projected_points"] for e in self.roster), reverse=True
-        )
-        return sum(pts[:11])
+        """C/VC-aware fitness: base pts + Captain(2×)/VC(1.5×) bonus per match."""
+        base = sum(e["player"]["projected_points"] for e in self.roster)
+        if not SCHEDULE:
+            return base
+        cv_bonus = 0.0
+        for match in SCHEDULE:
+            eligible = sorted(
+                [e["player"] for e in self.roster
+                 if e["player"].get("ipl_team") in (match["team1"], match["team2"])],
+                key=lambda p: p["projected_points"],
+                reverse=True,
+            )
+            if len(eligible) >= 1:
+                cv_bonus += eligible[0]["projected_points"] * 1.0  # Captain +1×
+            if len(eligible) >= 2:
+                cv_bonus += eligible[1]["projected_points"] * 0.5  # VC +0.5×
+        return base + cv_bonus
 
     # ── Shared helpers ───────────────────────────────────────────────────────
     def _desperation(self, wtp: float, state: dict, rnd: int) -> float:
@@ -150,7 +173,43 @@ class Manager:
     def willingness_to_pay(self, player: dict, state: dict, rnd: int) -> float:
         raise NotImplementedError
 
-    def __repr__(self) -> str:
+    def bid(self, player: dict, state: dict, rnd: int) -> float:
+        """Called by auction.py. Applies team diversity premium on top of WTP."""
+        wtp = self.willingness_to_pay(player, state, rnd)
+        return self._apply_team_premium(wtp, player)
+
+    def _apply_team_premium(self, wtp: float, player: dict) -> float:
+        """Boosts WTP for new teams; discounts 3rd+ player from same franchise."""
+        premium = getattr(self.params, "new_team_premium", 1.0)
+        if premium == 1.0:
+            return wtp
+        team = player.get("ipl_team")
+        if not team:
+            return wtp
+        my_teams = {e["player"].get("ipl_team") for e in self.roster}
+        if team not in my_teams:
+            return min(wtp * premium, self.max_bid)
+        team_count = sum(1 for e in self.roster if e["player"].get("ipl_team") == team)
+        if team_count >= 3:
+            return wtp * max(0.5, 2.0 - premium)  # discount when oversaturated
+        return wtp
+
+    def _team_spread(self) -> int:
+        """Number of unique IPL franchises in current roster."""
+        return len({e["player"].get("ipl_team") for e in self.roster
+                    if e["player"].get("ipl_team")})
+
+    def _is_new_team(self, player: dict) -> bool:
+        """True if this player's IPL team is not yet represented in roster."""
+        my_teams = {e["player"].get("ipl_team") for e in self.roster}
+        return player.get("ipl_team") not in my_teams
+
+    def _cv_saturation(self, player: dict) -> bool:
+        """True if roster already has 3+ players from this player's IPL team."""
+        team = player.get("ipl_team")
+        if not team:
+            return False
+        return sum(1 for e in self.roster if e["player"].get("ipl_team") == team) >= 3
         return (
             f"{self.name:<30} | {len(self.roster):>2}/{self.max_roster}"
             f" | ₹{self.purse:>5.1f}Cr | {self.season_score():>6.0f}pts"
@@ -167,9 +226,10 @@ class StarChaserParams(StrategyParams):
     t1_extra_mult: float = 1.2       # cash_per_slot multiplier for subsequent T1
     t2_mult: float = 1.0             # cash_per_slot multiplier for T2
     depth_mult: float = 0.55         # cash_per_slot multiplier for T3
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
-        return [(0.20, 0.60), (1.5, 4.0), (0.8, 2.0), (0.7, 1.5), (0.3, 0.8)]
+        return [(0.20, 0.60), (1.5, 4.0), (0.8, 2.0), (0.7, 1.5), (0.3, 0.8), (0.8, 2.0)]
 
 
 class StarChaser(Manager):
@@ -203,9 +263,10 @@ class ValueInvestorParams(StrategyParams):
     urgency_min: float = 0.85
     urgency_max: float = 1.35
     fair_base: float = 0.5           # base cost offset in ₹Cr
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
-        return [(0.5, 1.0), (1.0, 2.0), (0.3, 1.0)]
+        return [(0.5, 1.0), (1.0, 2.0), (0.3, 1.0), (0.8, 2.0)]
 
 
 class ValueInvestor(Manager):
@@ -232,9 +293,10 @@ class DynamicMaximizerParams(StrategyParams):
     base_exp: float = 1.4            # exponent at 4 agents
     exp_per_agent: float = 0.07      # exponent increase per additional agent
     exp_cap: float = 2.0             # maximum exponent
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
-        return [(1.0, 2.0), (0.02, 0.15), (1.5, 3.0)]
+        return [(1.0, 2.0), (0.02, 0.15), (1.5, 3.0), (0.8, 2.0)]
 
 
 class DynamicMaximizer(Manager):
@@ -260,9 +322,10 @@ class ApexPredatorParams(StrategyParams):
     efficiency_exp: float = 1.5      # p_eff/a_eff ratio exponent
     adj_min: float = 0.8             # wallet-leverage clamp min
     adj_max: float = 2.0             # wallet-leverage clamp max
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
-        return [(0.70, 1.00), (1.0, 2.5), (0.5, 1.2), (1.5, 3.0)]
+        return [(0.70, 1.00), (1.0, 2.5), (0.5, 1.2), (1.5, 3.0), (0.8, 2.0)]
 
 
 class ApexPredator(Manager):
@@ -300,9 +363,10 @@ class BarbellStrategistParams(StrategyParams):
     lo_reward_mult: float = 0.15     # std_dev multiplier for cheap picks
     mid_penalty_mult: float = 0.05   # std_dev multiplier for mid-range picks
     base_exp: float = 1.6            # _premium_wtp exponent
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
-        return [(0.05, 0.30), (0.01, 0.10), (0.5, 2.0), (0.5, 2.0), (0.0, 1.0), (1.0, 2.5)]
+        return [(0.05, 0.30), (0.01, 0.10), (0.5, 2.0), (0.5, 2.0), (0.0, 1.0), (1.0, 2.5), (0.8, 2.0)]
 
 
 class BarbellStrategist(Manager):
@@ -340,10 +404,11 @@ class VampireMaximizerParams(StrategyParams):
     elite_pts_threshold: float = 90  # projected_points above this → elite opp mult
     elite_mult: float = 1.4          # opp cash_per_slot multiplier for elite players
     normal_mult: float = 0.9         # opp cash_per_slot multiplier for normal players
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
         return [(0.25, 1.5), (0.20, 0.60), (0.40, 0.80), (0.20, 0.60),
-                (2.0, 7.0), (70.0, 120.0), (1.0, 2.0), (0.6, 1.2)]
+                (2.0, 7.0), (70.0, 120.0), (1.0, 2.0), (0.6, 1.2), (0.8, 2.0)]
 
 
 class VampireMaximizer(Manager):
@@ -390,10 +455,11 @@ class TierSniperParams(StrategyParams):
     t1_enforce_when_remaining: int = 3      # enforce when ≤ this many T1s left
     t2_mult: float = 1.1
     depth_mult: float = 0.65
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
         return [(0.25, 0.65), (1.5, 4.0), (0.8, 1.5), (0.2, 0.8),
-                (1.0, 6.0), (0.7, 1.5), (0.3, 1.0)]
+                (1.0, 6.0), (0.7, 1.5), (0.3, 1.0), (0.8, 2.0)]
 
 
 class TierSniper(Manager):
@@ -438,10 +504,11 @@ class NominationGamblerParams(StrategyParams):
     phase_b_t2_mult: float = 0.9
     phase_b_depth_mult: float = 0.40
     phase_c_exp: float = 2.0
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
         return [(4.0, 12.0), (1.0, 5.0), (0.8, 2.5), (0.1, 0.5),
-                (1.0, 2.5), (0.5, 1.5), (0.2, 0.7), (1.5, 3.0)]
+                (1.0, 2.5), (0.5, 1.5), (0.2, 0.7), (1.5, 3.0), (0.8, 2.0)]
 
 
 class NominationGambler(Manager):
@@ -485,10 +552,11 @@ class PositionalArbitrageurParams(StrategyParams):
     filled_discount: float = 0.7     # scarcity multiplier when role is filled
     scarcity_exp: float = 0.8        # (need/supply)^scarcity_exp
     premium_exp: float = 1.4         # (pts/alt_mean)^premium_exp
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
         return [(3.0, 8.0), (2.0, 6.0), (1.0, 4.0), (1.0, 3.0),
-                (1.5, 4.0), (0.4, 1.0), (0.5, 1.5), (1.0, 2.0)]
+                (1.5, 4.0), (0.4, 1.0), (0.5, 1.5), (1.0, 2.0), (0.8, 2.0)]
 
 
 class PositionalArbitrageur(Manager):
@@ -533,10 +601,11 @@ class BudgetSweeperParams(StrategyParams):
     sweep_exp: float = 1.6          # _premium_wtp exponent in sweep phase
     sweep_boost: float = 1.25       # extra multiplier on top of premium in sweep
     underspend_boost: float = 1.60  # scale-up when falling behind budget pace
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
         return [(0.40, 0.70), (0.20, 0.45), (0.15, 0.55),
-                (0.60, 1.10), (1.2, 2.5), (1.0, 2.0), (1.0, 2.5)]
+                (0.60, 1.10), (1.2, 2.5), (1.0, 2.0), (1.0, 2.5), (0.8, 2.0)]
 
 
 class BudgetSweeper(Manager):
@@ -587,11 +656,12 @@ class FieldAwareAdaptorParams(StrategyParams):
     base_exp: float = 1.45              # _premium_wtp exponent baseline
     t1_premium: float = 1.25            # extra multiplier for Tier-1 players
     budget_urgency_scale: float = 1.30  # amplifies spend-lag into bid boost
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
         return [(1.05, 1.30), (0.70, 0.95), (0.60, 1.00),
                 (0.85, 1.15), (1.05, 1.50), (1.1, 2.0),
-                (1.0, 1.8), (1.0, 2.0)]
+                (1.0, 1.8), (1.0, 2.0), (0.8, 2.0)]
 
 
 class FieldAwareAdaptor(Manager):
@@ -660,11 +730,12 @@ class ContrarianSnapperParams(StrategyParams):
     t3_min_pts: float = 50.0          # only snap Tier-3 if projected_points ≥ this
     late_pool_threshold: float = 0.25 # "late auction" when this fraction of pool remains
     late_sweep_exp: float = 1.75      # premium exponent for late sweep
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
         return [(1.0, 6.0), (0.40, 1.00), (1.10, 2.20),
                 (0.80, 1.40), (0.90, 1.80), (30.0, 80.0),
-                (0.15, 0.40), (1.2, 2.5)]
+                (0.15, 0.40), (1.2, 2.5), (0.8, 2.0)]
 
 
 class ContrarianSnapper(Manager):
@@ -793,9 +864,10 @@ class _HybridBase(Manager):
 class FieldSniperParams(StrategyParams):
     alpha: float = 0.55          # weight on FieldAwareAdaptor (vs TierSniper)
     budget_kicker: float = 1.80  # urgency multiplier per unit spend-lag
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
-        return [(0.1, 0.9), (0.5, 4.0)]
+        return [(0.1, 0.9), (0.5, 4.0), (0.8, 2.0)]
 
 
 class FieldSniper(_HybridBase):
@@ -815,9 +887,10 @@ class FieldSniper(_HybridBase):
 class VampireSweeperParams(StrategyParams):
     alpha: float = 0.60          # weight on VampireMaximizer (vs BudgetSweeper)
     budget_kicker: float = 2.20  # stronger urgency — Vampire can sit back too long
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
-        return [(0.1, 0.9), (0.5, 4.0)]
+        return [(0.1, 0.9), (0.5, 4.0), (0.8, 2.0)]
 
 
 class VampireSweeper(_HybridBase):
@@ -837,9 +910,10 @@ class VampireSweeper(_HybridBase):
 class ContrarianArbitrageurParams(StrategyParams):
     alpha: float = 0.50          # equal blend by default
     budget_kicker: float = 1.60
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
-        return [(0.1, 0.9), (0.5, 4.0)]
+        return [(0.1, 0.9), (0.5, 4.0), (0.8, 2.0)]
 
 
 class ContrarianArbitrageur(_HybridBase):
@@ -861,9 +935,10 @@ class ContrarianArbitrageur(_HybridBase):
 class NominationFieldAdaptorParams(StrategyParams):
     alpha: float = 0.50          # weight on NominationGambler (vs FieldAwareAdaptor)
     budget_kicker: float = 1.70  # urgency multiplier per unit spend-lag
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
-        return [(0.1, 0.9), (0.5, 4.0)]
+        return [(0.1, 0.9), (0.5, 4.0), (0.8, 2.0)]
 
 
 class NominationFieldAdaptor(_HybridBase):
@@ -885,9 +960,10 @@ class NominationFieldAdaptor(_HybridBase):
 class VampireGamblerParams(StrategyParams):
     alpha: float = 0.60          # weight on VampireMaximizer (vs NominationGambler)
     budget_kicker: float = 1.90  # stronger urgency — Vampire-style wait can over-save
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
-        return [(0.1, 0.9), (0.5, 4.0)]
+        return [(0.1, 0.9), (0.5, 4.0), (0.8, 2.0)]
 
 
 class VampireGambler(_HybridBase):
@@ -929,6 +1005,7 @@ class ContextualEnsembleParams(StrategyParams):
     t1_vampire_boost: float = 1.10  # Vampire enforcement on sought-after T1s
 
     budget_kicker: float = 1.50     # spend-lag urgency
+    new_team_premium: float = 1.0
 
     def get_bounds(self):
         return [
@@ -936,6 +1013,7 @@ class ContextualEnsembleParams(StrategyParams):
             (0.8, 3.0), (0.8, 3.0), (0.8, 2.5),                   # phase boosts
             (0.8, 2.5), (0.8, 2.0),                                # tier boosts
             (0.5, 4.0),                                            # budget_kicker
+            (0.8, 2.0),                                            # new_team_premium
         ]
 
 
@@ -1015,6 +1093,50 @@ class ContextualEnsemble(Manager):
         return min(raw * boost, self.max_bid)
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# TeamDiversifier — control strategy for isolating team diversity value
+# Pure team-spread signal: bonus for new franchises, discount once 3+
+# players from the same team are acquired.  Allows direct measurement of
+# how much C/VC team diversity is worth vs. ignoring squad composition.
+# ═══════════════════════════════════════════════════════════════════════════
+@dataclass
+class TeamDiversifierParams(StrategyParams):
+    team_spread_target: int = 7      # aim for this many unique franchises
+    spread_bonus: float = 1.5        # WTP multiplier for first player from new team
+    saturation_discount: float = 0.7 # WTP multiplier when 3+ from same team
+    base_exp: float = 1.4            # _premium_wtp exponent
+    new_team_premium: float = 1.0    # handled directly in WTP; bid() is a no-op
+
+    def get_bounds(self):
+        return [(3.0, 10.0), (1.1, 2.5), (0.4, 0.9), (1.0, 2.0), (0.8, 2.0)]
+
+
+class TeamDiversifier(Manager):
+    """Control strategy: maximises IPL franchise diversity for C/VC coverage."""
+
+    params: TeamDiversifierParams
+
+    def willingness_to_pay(self, player, state, rnd):
+        if self.slots == 0:
+            return 0.0
+        p = self.params
+        team = player.get("ipl_team")
+        my_teams = {e["player"].get("ipl_team") for e in self.roster}
+        team_count = sum(
+            1 for e in self.roster if e["player"].get("ipl_team") == team
+        )
+        base_wtp = self._premium_wtp(player, state, rnd, p.base_exp)
+        if team and team not in my_teams:
+            mult = p.spread_bonus
+        elif team_count >= 3:
+            mult = p.saturation_discount
+        elif len(my_teams) < p.team_spread_target:
+            mult = 1.1
+        else:
+            mult = 1.0
+        return self._desperation(base_wtp * mult, state, rnd)
+
+
 # ── Registry ─────────────────────────────────────────────────────────────────
 STRATEGY_REGISTRY: dict[str, tuple[type[Manager], type[StrategyParams]]] = {
     "StarChaser":                (StarChaser,                StarChaserParams),
@@ -1037,6 +1159,8 @@ STRATEGY_REGISTRY: dict[str, tuple[type[Manager], type[StrategyParams]]] = {
     "VampireGambler":            (VampireGambler,             VampireGamblerParams),
     # Ensemble (4-parent, context-weighted)
     "ContextualEnsemble":        (ContextualEnsemble,         ContextualEnsembleParams),
+    # Control strategy for team diversity measurement
+    "TeamDiversifier":           (TeamDiversifier,            TeamDiversifierParams),
 }
 
 

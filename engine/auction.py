@@ -65,6 +65,8 @@ def build_state(agents: list["Manager"], remaining: list[dict]) -> dict:
                 "slots": a.slots,
                 "mandatory": a.mandatory,
                 "name": a.name,
+                # roster_players used by SquadBuilder.relative_standing()
+                "roster_players": [e["player"] for e in a.roster],
             }
             for a in agents
         },
@@ -115,12 +117,15 @@ def run_auction(
             # Compute WTP for each active agent (with noise)
             wtp: dict[str, float] = {}
             for a in active:
-                raw = a.willingness_to_pay(player, state, rnd)
+                raw = a.bid(player, state, rnd)
                 noise = random.uniform(NOISE_LO, NOISE_HI) if raw > MIN_BID else 0.0
                 wtp[a.name] = min(raw + noise, a.max_bid)
 
             if not any(v >= floor for v in wtp.values()):
                 unsold.append(player)
+                for a in agents:
+                    if hasattr(a, "on_unsold"):
+                        a.on_unsold(player)
                 if verbose:
                     print(f"  ⛔ UNSOLD  {player['player_name']:<22} ({player['role']})")
                 continue
@@ -142,6 +147,12 @@ def run_auction(
             assert winner is not None
             winning_agent = next(a for a in agents if a.name == winner)
             winning_agent.buy(player, bid)
+
+            # Notify all agents of this sale (PTAManager subclasses use this
+            # to update live market state; base Manager has a no-op default)
+            for a in agents:
+                if hasattr(a, "on_sale"):
+                    a.on_sale(player, bid, winner, state["cr_per_vorp"])
             if purchase_log is not None:
                 purchase_log.append({
                     "strategy": winner,

@@ -16,6 +16,7 @@ Public API:
 
 from __future__ import annotations
 
+import json
 import math
 import random
 from abc import ABC, abstractmethod
@@ -30,9 +31,13 @@ from .overrides import apply_overrides
 TIER1_FLOOR = 80.0   # avg pts/match → Elite
 TIER2_FLOOR = 58.0   # avg pts/match → Solid, below = Depth
 
-_DEFAULT_CSV        = Path(__file__).parent.parent / "ipl_player_stats.csv"
-_DEFAULT_RULES      = Path(__file__).parent.parent / "scoring_rules.json"
-_DEFAULT_ROLES_PATH = Path(__file__).parent.parent / "player_roles.json"
+_DEFAULT_CSV         = Path(__file__).parent.parent / "ipl_player_stats.csv"
+_DEFAULT_RULES       = Path(__file__).parent.parent / "scoring_rules.json"
+_DEFAULT_ROLES_PATH  = Path(__file__).parent.parent / "player_roles.json"
+_DEFAULT_MASTER_PATH = Path(__file__).parent.parent / "player_master.json"
+
+# Floor projected_points for players with no CSV history
+_FLOOR_PTS = {"BAT": 40.0, "AR": 40.0, "BOWL": 38.0, "WK": 35.0}
 
 
 # ── Authoritative role lookup ────────────────────────────────────────────────
@@ -422,7 +427,7 @@ def build_pool(
     model: ProjectionModel | None = None,
     *,
     min_matches: int = 5,
-    pool_size: int = 130,
+    pool_size: int = 200,
     num_teams: int = 6,
     role_requirements: dict[str, int] | None = None,
     vorp_method: str = "quantile",   # "quantile" | "depth"
@@ -508,7 +513,66 @@ def build_pool(
          "vorp", "tier", "base_price", "is_marquee", "matches_played"]
     ).rename({"matches_played": "matches"}).to_dicts()
 
-    # 10. Apply manual overrides
+    # 10. Enrich with ipl_team and auction_set from player_master.json;
+    #     filter out any player not present in the master list.
+    master_path = _DEFAULT_MASTER_PATH
+    if master_path.exists():
+        with open(master_path) as f:
+            master_data = json.load(f)
+        # Two lookups: csv_name -> meta, and auction_name -> meta
+        csv_to_meta = {p["csv_name"]: p for p in master_data if p.get("csv_name")}
+        name_to_meta = {p["name"]: p for p in master_data}
+
+        filtered_pool = []
+        removed_players = []
+        for player in pool:
+            meta = csv_to_meta.get(player["player_name"]) or name_to_meta.get(player["player_name"])
+            if meta is None:
+                removed_players.append({"player_name": player["player_name"], "role": player["role"],
+                                        "projected_points": player["projected_points"]})
+            else:
+                player["ipl_team"] = meta["ipl_team"]
+                player["auction_set"] = meta["auction_set"]
+                filtered_pool.append(player)
+        pool = filtered_pool
+
+        # Save removed players for debugging
+        _removed_path = Path(__file__).parent.parent / "removed_from_pool.json"
+        with open(_removed_path, "w") as f:
+            json.dump(removed_players, f, indent=2)
+        if removed_players:
+            import warnings
+            warnings.warn(
+                f"{len(removed_players)} players removed (not in player_master.json). "
+                f"See removed_from_pool.json",
+                stacklevel=2,
+            )
+
+        # Add floor-value players from master that have no CSV data
+        stat_csv_names = {p["player_name"] for p in pool}
+        for pm in master_data:
+            if pm.get("csv_name") is None and pm["name"] not in stat_csv_names:
+                role = pm["role"]  # already normalized (BWL→BOWL in player_master)
+                pts = _FLOOR_PTS.get(role, 38.0)
+                pool.append({
+                    "player_name": pm["name"],
+                    "role": role,
+                    "projected_points": pts,
+                    "std_dev": 15.0,
+                    "vorp": 0.0,
+                    "tier": 3,
+                    "base_price": 1.0,
+                    "is_marquee": False,
+                    "matches": 0,
+                    "ipl_team": pm["ipl_team"],
+                    "auction_set": pm["auction_set"],
+                })
+    else:
+        for player in pool:
+            player.setdefault("ipl_team", "UNK")
+            player.setdefault("auction_set", 12)
+
+    # 11. Apply manual overrides
     pool = apply_overrides(pool, overrides_path)
 
     return pool
@@ -524,9 +588,7 @@ def build_pool(
 #      band of the next player but not the exact pick order.
 #   Round 2+ (unsold re-entry) is an accelerated auction with no set order.
 
-_ROLE_ORDER = ["BAT", "AR", "WK", "BOWL"]
-_BRACKET_SIZE = 4          # players per base-price bracket within a set
-MARQUEE_SIZE  = 10         # top-N players that form the opening Marquee set
+MARQUEE_SIZE = 10  # kept for backward compatibility
 
 
 def order_pool(
@@ -535,46 +597,23 @@ def order_pool(
     rng: random.Random | None = None,
 ) -> list[dict]:
     """
-    Order the pool to mirror the real IPL auction set structure.
+    Order the pool by auction_set (1–12), randomised within each set.
 
-    Sequence
-    --------
-    1. MARQUEE SET  — top MARQUEE_SIZE players by projected_points regardless
-       of role, randomised within the set.  Full wallets guarantee price wars.
-
-    2. CAPPED SETS (T1 + T2, non-marquee) — processed ROLE BY ROLE in fixed
-       order: BAT → AR → WK → BOWL.  Within each role set, players are drawn
-       in RANDOM order (the auctioneer picks a card from the current set; teams
-       know which role is up but not which exact player comes next).
-
-    3. UNCAPPED SETS (T3, non-marquee) — same fixed role order, each role
-       randomised within.
-
-    The role order is FIXED (not shuffled) because in real IPL franchises know
-    the macro schedule and budget accordingly.  Randomness lives entirely
-    within each set, matching the card-draw mechanic.
+    auction_set mirrors the real IPL auction structure where players are
+    grouped into sets by role and tier, and the auctioneer draws cards
+    randomly within each set.  Set numbers come from player_master.json.
     """
     if rng is None:
         rng = random.Random()
 
-    # Partition into marquee vs rest
-    marquee = [p for p in pool if p.get("is_marquee", False)]
-    rest    = [p for p in pool if not p.get("is_marquee", False)]
+    from collections import defaultdict
+    by_set: dict[int, list[dict]] = defaultdict(list)
+    for p in pool:
+        by_set[p.get("auction_set", 12)].append(p)
 
-    # 1. Marquee set — random draw order
-    rng.shuffle(marquee)
-    result: list[dict] = list(marquee)
-
-    # 2. Capped (T1+T2) by role, random within role set
-    for role in _ROLE_ORDER:
-        capped = [p for p in rest if p["role"] == role and p.get("tier", 3) <= 2]
-        rng.shuffle(capped)
-        result.extend(capped)
-
-    # 3. Uncapped (T3) by role, random within role set
-    for role in _ROLE_ORDER:
-        uncapped = [p for p in rest if p["role"] == role and p.get("tier", 3) == 3]
-        rng.shuffle(uncapped)
-        result.extend(uncapped)
-
+    result: list[dict] = []
+    for aset in sorted(by_set.keys()):
+        group = by_set[aset]
+        rng.shuffle(group)
+        result.extend(group)
     return result

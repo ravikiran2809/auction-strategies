@@ -8,11 +8,12 @@
       "depth_mult": 0.55
     },
     "evolved": {
-      "elite_cap": 0.2001343080732274,
-      "t1_solo_mult": 3.2960902133551655,
-      "t1_extra_mult": 1.9925337747437737,
-      "t2_mult": 0.9469997825738532,
-      "depth_mult": 0.38923529127234163
+      "elite_cap": 0.2132693935329078,
+      "t1_solo_mult": 1.6443563025390113,
+      "t1_extra_mult": 1.987916551779708,
+      "t2_mult": 0.8083041213222903,
+      "depth_mult": 0.3019723993871355,
+      "new_team_premium": 1.3113530179317179
     }
   },
   "ValueInvestor": {
@@ -22,9 +23,10 @@
       "fair_base": 0.5
     },
     "evolved": {
-      "urgency_min": 0.9445506360787623,
-      "urgency_max": 1.8749213641466185,
-      "fair_base": 0.5027102354043835
+      "urgency_min": 0.8864478922749941,
+      "urgency_max": 1.3989571247453672,
+      "fair_base": 0.4995007451433424,
+      "new_team_premium": 1.9085224735950403
     }
   },
   "DynamicMaximizer": {
@@ -34,9 +36,10 @@
       "exp_cap": 2.0
     },
     "evolved": {
-      "base_exp": 1.6946266678774877,
-      "exp_per_agent": 0.12806554776861062,
-      "exp_cap": 2.492207246875969
+      "base_exp": 1.6831179431385799,
+      "exp_per_agent": 0.12241247485140826,
+      "exp_cap": 2.4029188889180872,
+      "new_team_premium": 1.9784429577983005
     }
   },
   "ApexPredator": {
@@ -47,10 +50,11 @@
       "adj_max": 2.0
     },
     "evolved": {
-      "wc_discount": 0.9984911298665832,
-      "efficiency_exp": 2.3746676694292734,
-      "adj_min": 1.195537241867365,
-      "adj_max": 2.755548125991651
+      "wc_discount": 0.9570412259823677,
+      "efficiency_exp": 1.0003291643940446,
+      "adj_min": 1.1053172063611105,
+      "adj_max": 1.5464891547014992,
+      "new_team_premium": 1.5152863053728045
     }
   },
   "BarbellStrategist": {
@@ -63,12 +67,13 @@
       "base_exp": 1.55
     },
     "evolved": {
-      "hi_cost_threshold": 0.18505677059326076,
-      "lo_cost_threshold": 0.09961932914317218,
-      "hi_penalty_mult": 1.4385441865467705,
-      "lo_reward_mult": 1.0939287728573888,
-      "mid_penalty_mult": 0.4467898238870519,
-      "base_exp": 1.3824018570958951
+      "hi_cost_threshold": 0.2758254332801022,
+      "lo_cost_threshold": 0.09971155649236721,
+      "hi_penalty_mult": 0.709813721430882,
+      "lo_reward_mult": 0.5012607257108022,
+      "mid_penalty_mult": 0.9961469764645712,
+      "base_exp": 2.3937674247935328,
+      "new_team_premium": 1.23506209402336
     }
   },
   "VampireMaximizer": {
@@ -83,14 +88,15 @@
       "normal_mult": 0.9
     },
     "evolved": {
-      "shade_margin": 0.3349482162690993,
-      "bluff_floor_ratio": 0.2850228940809989,
-      "bluff_cap_ratio": 0.4861545319416938,
-      "purse_healthy_pct": 0.2114393654702454,
-      "min_slots_to_bluff": 3,
-      "elite_pts_threshold": 92.6309056094527,
-      "elite_mult": 1.9885620592114135,
-      "normal_mult": 1.1966739633188428
+      "shade_margin": 0.7512235738793449,
+      "bluff_floor_ratio": 0.388103709315919,
+      "bluff_cap_ratio": 0.5775096757542202,
+      "purse_healthy_pct": 0.22562052818655473,
+      "min_slots_to_bluff": 2,
+      "elite_pts_threshold": 74.12872053904795,
+      "elite_mult": 1.3984598524467078,
+      "normal_mult": 1.1971207730061006,
+      "new_team_premium": 1.551006373502472
     }
   },
   "TierSniper": {
@@ -104,13 +110,14 @@
       "depth_mult": 0.65
     },
     "evolved": {
-      "t1_cap": 0.2951256328876939,
-      "t1_solo_mult": 3.9148697905127885,
-      "t1_price_enforce_mult": 0.9151849198160621,
-      "t1_sit_back_mult": 0.7523101039186502,
-      "t1_enforce_when_remaining": 2,
-      "t2_mult": 1.497085614749131,
-      "depth_mult": 0.6019142660821525
+      "t1_cap": 0.32187632022591695,
+      "t1_solo_mult": 3.704720459672928,
+      "t1_price_enforce_mult": 1.0073763854763294,
+      "t1_sit_back_mult": 0.7185351956643791,
+      "t1_enforce_when_remaining": 1,
+      "t2_mult": 1.499998878071347,
+      "depth_mult": 0.43005384320770557,
+      "new_team_premium": 1.9999750520579473
     }
   },
   "NominationGambler": {
@@ -125,14 +132,15 @@
       "phase_c_exp": 2.0
     },
     "evolved": {
-      "phase_a_threshold": 5,
-      "phase_b_threshold": 1,
-      "phase_a_t1_mult": 2.094565393716824,
-      "phase_a_other_mult": 0.13712692722652162,
-      "phase_b_t1_exp": 1.6252787978656742,
-      "phase_b_t2_mult": 1.030797135639383,
-      "phase_b_depth_mult": 0.5441760805527939,
-      "phase_c_exp": 2.5467416958249456
+      "phase_a_threshold": 11,
+      "phase_b_threshold": 4,
+      "phase_a_t1_mult": 2.148307515329618,
+      "phase_a_other_mult": 0.10479054380985438,
+      "phase_b_t1_exp": 1.9727737374682932,
+      "phase_b_t2_mult": 0.9126530472398312,
+      "phase_b_depth_mult": 0.5115156659106458,
+      "phase_c_exp": 1.566613307886015,
+      "new_team_premium": 1.2230816503039348
     }
   },
   "PositionalArbitrageur": {
@@ -147,14 +155,15 @@
       "premium_exp": 1.4
     },
     "evolved": {
-      "target_bat": 4,
-      "target_bowl": 3,
-      "target_ar": 1,
+      "target_bat": 3,
+      "target_bowl": 5,
+      "target_ar": 2,
       "target_wk": 1,
-      "scarcity_cap": 1.9957238076895463,
-      "filled_discount": 0.8094335276239832,
-      "scarcity_exp": 0.608361986928179,
-      "premium_exp": 1.9473345465423852
+      "scarcity_cap": 2.3941375938385785,
+      "filled_discount": 0.8818107709826386,
+      "scarcity_exp": 0.5187255253151885,
+      "premium_exp": 1.988455636172023,
+      "new_team_premium": 1.962223640813356
     }
   },
   "BudgetSweeper": {
@@ -168,13 +177,14 @@
       "underspend_boost": 2.0
     },
     "evolved": {
-      "hoard_until": 0.6101938210235021,
-      "sweep_from": 0.3547447579868338,
-      "hoard_mult": 0.5435461273426648,
-      "transition_mult": 0.9579070867887738,
-      "sweep_exp": 1.3391762635280209,
-      "sweep_boost": 1.650340051922897,
-      "underspend_boost": 1.525055350448591
+      "hoard_until": 0.6763071910954421,
+      "sweep_from": 0.32249565427749527,
+      "hoard_mult": 0.5494298504641048,
+      "transition_mult": 0.8654859119049081,
+      "sweep_exp": 1.907655620845532,
+      "sweep_boost": 1.0001635587299684,
+      "underspend_boost": 2.4617321932541785,
+      "new_team_premium": 1.657356568793677
     }
   },
   "FieldAwareAdaptor": {
@@ -189,14 +199,15 @@
       "budget_urgency_scale": 1.3
     },
     "evolved": {
-      "advantage_threshold": 1.147898414828981,
-      "disadvantage_threshold": 0.9394070445128397,
-      "advantage_mult": 0.6228773639029136,
-      "parity_mult": 1.1396683718443803,
-      "disadvantage_mult": 1.3645022454609999,
-      "base_exp": 1.4075177397508494,
-      "t1_premium": 1.7754963656316143,
-      "budget_urgency_scale": 1.556528274533232
+      "advantage_threshold": 1.0712135661506832,
+      "disadvantage_threshold": 0.883087479628188,
+      "advantage_mult": 0.924860819715243,
+      "parity_mult": 0.9740559259600357,
+      "disadvantage_mult": 1.1794221491309813,
+      "base_exp": 1.9757703169811653,
+      "t1_premium": 1.7980827560819193,
+      "budget_urgency_scale": 1.4044220370488385,
+      "new_team_premium": 1.66227343666776
     }
   },
   "ContrarianSnapper": {
@@ -212,13 +223,14 @@
     },
     "evolved": {
       "competition_threshold": 5,
-      "t1_contested_mult": 0.9175663089865815,
-      "t1_uncontested_mult": 2.1991507036905893,
-      "t2_mult": 0.9027698215944855,
-      "t3_snap_mult": 0.9759718529781848,
-      "t3_min_pts": 33.557423736717865,
-      "late_pool_threshold": 0.1500013783741485,
-      "late_sweep_exp": 2.458562868700133
+      "t1_contested_mult": 0.9152577778769176,
+      "t1_uncontested_mult": 2.15193806695765,
+      "t2_mult": 0.8418787338435353,
+      "t3_snap_mult": 1.644258788900433,
+      "t3_min_pts": 49.523231491027516,
+      "late_pool_threshold": 0.32500263303986987,
+      "late_sweep_exp": 2.4204447038555124,
+      "new_team_premium": 1.1082853185935146
     }
   },
   "FieldSniper": {
@@ -227,8 +239,9 @@
       "budget_kicker": 1.8
     },
     "evolved": {
-      "alpha": 0.12145877487356123,
-      "budget_kicker": 3.32017456510545
+      "alpha": 0.8789223979086345,
+      "budget_kicker": 2.4129847394656125,
+      "new_team_premium": 1.9801122624135832
     }
   },
   "VampireSweeper": {
@@ -237,8 +250,9 @@
       "budget_kicker": 2.2
     },
     "evolved": {
-      "alpha": 0.8959830995804359,
-      "budget_kicker": 2.5469858479316962
+      "alpha": 0.8733783313928594,
+      "budget_kicker": 1.962693364423126,
+      "new_team_premium": 1.6872534055566173
     }
   },
   "ContrarianArbitrageur": {
@@ -247,8 +261,9 @@
       "budget_kicker": 1.6
     },
     "evolved": {
-      "alpha": 0.7474734254964984,
-      "budget_kicker": 3.696026182776597
+      "alpha": 0.744699379026449,
+      "budget_kicker": 3.594728455955798,
+      "new_team_premium": 1.576186768689538
     }
   },
   "NominationFieldAdaptor": {
@@ -257,8 +272,9 @@
       "budget_kicker": 1.7
     },
     "evolved": {
-      "alpha": 0.5948751994174716,
-      "budget_kicker": 1.5102276334276734
+      "alpha": 0.5064100212263031,
+      "budget_kicker": 2.0451095014250122,
+      "new_team_premium": 1.9525291880540874
     }
   },
   "VampireGambler": {
@@ -267,8 +283,9 @@
       "budget_kicker": 1.9
     },
     "evolved": {
-      "alpha": 0.6722630594038422,
-      "budget_kicker": 3.619287108082609
+      "alpha": 0.8655300588612992,
+      "budget_kicker": 3.981096414579548,
+      "new_team_premium": 1.4852178288115976
     }
   },
   "ContextualEnsemble": {
@@ -285,16 +302,59 @@
       "budget_kicker": 1.5
     },
     "evolved": {
-      "lw_field": -0.389516456594343,
-      "lw_vampire": -0.39945545263044835,
-      "lw_gambler": 1.7440559004215062,
-      "lw_positional": -0.004892678959256269,
-      "early_gambler_boost": 1.9148273788690215,
-      "late_field_boost": 2.6487772594364785,
-      "late_vampire_boost": 2.304352692685254,
-      "t1_field_boost": 2.0261201128692146,
-      "t1_vampire_boost": 1.9470386239559805,
-      "budget_kicker": 2.088828599350074
+      "lw_field": 1.9867665244929023,
+      "lw_vampire": 1.5136747514124709,
+      "lw_gambler": 0.8391903539608006,
+      "lw_positional": -0.9078351571046319,
+      "early_gambler_boost": 2.1480288712457227,
+      "late_field_boost": 2.7818552220511688,
+      "late_vampire_boost": 2.4065380226190953,
+      "t1_field_boost": 1.7346494909510544,
+      "t1_vampire_boost": 1.058505185977106,
+      "budget_kicker": 3.937560228101017,
+      "new_team_premium": 1.9998062829631305
+    }
+  },
+  "TeamDiversifier": {
+    "evolved": {
+      "team_spread_target": 4,
+      "spread_bonus": 1.515999363312008,
+      "saturation_discount": 0.670198588763403,
+      "base_exp": 1.931529374986837,
+      "new_team_premium": 1.99133008030951
+    }
+  },
+  "SquadCompletionBidder": {
+    "evolved": {
+      "must_bid_mult": 1.2096754714031903,
+      "useful_mult": 1.0127567691911072,
+      "floor_mult": 0.1966988423580069,
+      "must_bid_threshold": 0.9107477440912384,
+      "useful_threshold": 0.674031544756392,
+      "overbid_dampen": 0.8883413197407828,
+      "buyer_boost": 1.0046080924243583,
+      "base_exp": 1.8064918424827217,
+      "quality_floor": 50.39232933998281,
+      "cliff_boost_threshold": 0.09853801563824413,
+      "cliff_must_bid_bonus": 0.8289136112148243,
+      "shade_margin": 0.5091114805625829,
+      "shade_save_ratio": 0.7814518716453847,
+      "denial_pressure_threshold": 0.5736306687208308,
+      "denial_boost": 1.0151203460287612,
+      "new_team_premium": 1.8727086947066875
+    }
+  },
+  "AdaptiveRecoveryManager": {
+    "evolved": {
+      "normal_exp": 1.9760504838063624,
+      "market_sensitivity": 0.7641601580522744,
+      "recovery_threshold": 0.9427355851948551,
+      "recovery_urgency_mult": 2.4623805364950964,
+      "recovery_sub_boost": 1.701332989170583,
+      "off_plan_floor": 0.23903113277383695,
+      "min_priority": 0.3628498115677212,
+      "t1_budget_fraction": 0.5406868808565926,
+      "new_team_premium": 1.9561702424819682
     }
   }
 }
