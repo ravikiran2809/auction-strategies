@@ -1,3 +1,13 @@
+---
+title: Auction Advisor
+emoji: 🏏
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 8000
+pinned: false
+---
+
 # IPL Auction Strategy Platform
 
 A research and live-advisory platform for IPL fantasy auction bidding. Combines Monte Carlo simulation, evolutionary parameter optimisation, and an in-browser advisor that delivers real-time recommendations backed by live Python strategies.
