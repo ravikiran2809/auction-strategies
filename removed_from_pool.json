@@ -1,8 +1,23 @@
 [
   {
+    "player_name": "W O'Rourke",
+    "role": "BAT",
+    "projected_points": 95.0
+  },
+  {
+    "player_name": "JM Bairstow",
+    "role": "WK",
+    "projected_points": 91.0
+  },
+  {
     "player_name": "KV Sharma",
     "role": "BAT",
-    "projected_points": 71.8
+    "projected_points": 82.2
+  },
+  {
+    "player_name": "Mustafizur Rahman",
+    "role": "BOWL",
+    "projected_points": 71.7
   },
   {
     "player_name": "Ashwani Kumar",
@@ -10,9 +25,14 @@
     "projected_points": 70.7
   },
   {
+    "player_name": "N Thushara",
+    "role": "BOWL",
+    "projected_points": 65.0
+  },
+  {
     "player_name": "V Puthur",
     "role": "BAT",
-    "projected_points": 63.0
+    "projected_points": 61.0
   },
   {
     "player_name": "MM Ali",
@@ -20,9 +40,29 @@
     "projected_points": 60.0
   },
   {
+    "player_name": "Akash Singh",
+    "role": "BOWL",
+    "projected_points": 58.3
+  },
+  {
     "player_name": "DS Rathi",
     "role": "BOWL",
     "projected_points": 55.1
+  },
+  {
+    "player_name": "AD Russell",
+    "role": "AR",
+    "projected_points": 50.5
+  },
+  {
+    "player_name": "K Khejroliya",
+    "role": "BAT",
+    "projected_points": 50.0
+  },
+  {
+    "player_name": "Akash Madhwal",
+    "role": "BAT",
+    "projected_points": 49.8
   },
   {
     "player_name": "PHKD Mendis",
@@ -30,14 +70,14 @@
     "projected_points": 49.6
   },
   {
-    "player_name": "AD Russell",
-    "role": "AR",
-    "projected_points": 47.4
-  },
-  {
     "player_name": "GJ Maxwell",
     "role": "BAT",
     "projected_points": 46.4
+  },
+  {
+    "player_name": "F du Plessis",
+    "role": "BAT",
+    "projected_points": 41.2
   },
   {
     "player_name": "Arshad Khan",
@@ -45,8 +85,23 @@
     "projected_points": 41.0
   },
   {
-    "player_name": "R Ashwin",
-    "role": "BOWL",
+    "player_name": "Yudhvir Singh",
+    "role": "BAT",
+    "projected_points": 40.0
+  },
+  {
+    "player_name": "RJ Gleeson",
+    "role": "BAT",
+    "projected_points": 40.0
+  },
+  {
+    "player_name": "MP Yadav",
+    "role": "BAT",
+    "projected_points": 40.0
+  },
+  {
+    "player_name": "MA Agarwal",
+    "role": "BAT",
     "projected_points": 39.8
   },
   {
@@ -55,19 +110,19 @@
     "projected_points": 39.3
   },
   {
-    "player_name": "F du Plessis",
-    "role": "BAT",
-    "projected_points": 37.1
-  },
-  {
-    "player_name": "Prince Yadav",
-    "role": "BAT",
-    "projected_points": 33.3
+    "player_name": "R Ashwin",
+    "role": "BOWL",
+    "projected_points": 38.7
   },
   {
     "player_name": "V Shankar",
     "role": "BAT",
-    "projected_points": 32.0
+    "projected_points": 38.4
+  },
+  {
+    "player_name": "Sediqullah Atal",
+    "role": "BAT",
+    "projected_points": 36.0
   },
   {
     "player_name": "Rahmanullah Gurbaz",
@@ -75,14 +130,49 @@
     "projected_points": 32.0
   },
   {
+    "player_name": "G Coetzee",
+    "role": "BAT",
+    "projected_points": 31.5
+  },
+  {
+    "player_name": "A Zampa",
+    "role": "BAT",
+    "projected_points": 25.0
+  },
+  {
+    "player_name": "KT Maphaka",
+    "role": "BOWL",
+    "projected_points": 25.0
+  },
+  {
+    "player_name": "P Dubey",
+    "role": "BAT",
+    "projected_points": 20.0
+  },
+  {
+    "player_name": "Mujeeb Ur Rahman",
+    "role": "BOWL",
+    "projected_points": 20.0
+  },
+  {
     "player_name": "A Manohar",
     "role": "BAT",
-    "projected_points": 17.0
+    "projected_points": 19.4
   },
   {
     "player_name": "J Fraser-McGurk",
     "role": "BAT",
     "projected_points": 16.8
+  },
+  {
+    "player_name": "Atharva Taide",
+    "role": "BAT",
+    "projected_points": 16.0
+  },
+  {
+    "player_name": "PVSN Raju",
+    "role": "BAT",
+    "projected_points": 15.5
   },
   {
     "player_name": "SK Rasheed",
@@ -92,12 +182,32 @@
   {
     "player_name": "PVD Chameera",
     "role": "BOWL",
-    "projected_points": 12.1
+    "projected_points": 14.2
+  },
+  {
+    "player_name": "M Tiwari",
+    "role": "BOWL",
+    "projected_points": 11.5
+  },
+  {
+    "player_name": "MK Lomror",
+    "role": "BAT",
+    "projected_points": 10.0
+  },
+  {
+    "player_name": "T Vijay",
+    "role": "BAT",
+    "projected_points": 10.0
   },
   {
     "player_name": "DJ Hooda",
     "role": "BAT",
-    "projected_points": 7.9
+    "projected_points": 9.2
+  },
+  {
+    "player_name": "MS Bhandage",
+    "role": "AR",
+    "projected_points": 7.0
   },
   {
     "player_name": "MM Sharma",
@@ -105,13 +215,48 @@
     "projected_points": 7.0
   },
   {
+    "player_name": "SH Johnson",
+    "role": "BAT",
+    "projected_points": 6.8
+  },
+  {
+    "player_name": "PWA Mulder",
+    "role": "BAT",
+    "projected_points": 5.0
+  },
+  {
+    "player_name": "Simarjeet Singh",
+    "role": "BAT",
+    "projected_points": 3.2
+  },
+  {
+    "player_name": "Karim Janat",
+    "role": "BAT",
+    "projected_points": 0.0
+  },
+  {
     "player_name": "Suryansh Shedge",
     "role": "AR",
-    "projected_points": -0.6
+    "projected_points": -1.0
+  },
+  {
+    "player_name": "RJW Topley",
+    "role": "BAT",
+    "projected_points": -10.0
+  },
+  {
+    "player_name": "KS Rathore",
+    "role": "BAT",
+    "projected_points": -10.0
   },
   {
     "player_name": "Fazalhaq Farooqi",
     "role": "BAT",
     "projected_points": -13.6
+  },
+  {
+    "player_name": "C Sakariya",
+    "role": "BAT",
+    "projected_points": -20.0
   }
 ]
