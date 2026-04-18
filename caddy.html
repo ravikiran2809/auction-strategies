@@ -187,8 +187,8 @@
         <label>Floor (current)</label>
         <div class="amount" id="floor-display">₹0</div>
       </div>
-      <div class="bid-box scb">
-        <label>⭐ SCB ceiling</label>
+      <div class="bid-box scb" style="cursor:pointer" onclick="refreshSCB()" title="Tap to refresh with your current state">
+        <label>⭐ SCB ceiling 🔄</label>
         <div class="amount" id="scb-display">—</div>
       </div>
       <div class="bid-box arm">
@@ -238,6 +238,7 @@ const S = {
   connected: false,
   pollTimer: null,
   lastPlayer: null,
+  lastLiveData: null,  // last /live snapshot — used for SCB re-fetch
   myPurse: 120.0,
   myRoster: [],   // [{name, price}]
   pool: [],
@@ -288,6 +289,7 @@ function addToMyRoster() {
   $('add-player-input').value = '';
   $('add-price-input').value = '';
   renderMyState();
+  refreshSCB();
 }
 
 function removeFromRoster(i) {
@@ -309,6 +311,7 @@ function quickWin() {
   S.myPurse = Math.max(0, S.myPurse - price);
   $('quick-price-input').value = '';
   renderMyState();
+  refreshSCB();
 }
 
 // ── Pool loading (for autocomplete) ───────────────────────────────────────
@@ -406,6 +409,8 @@ async function updateLiveCard(d) {
   // Priority
   $('priority-display').textContent = d.priority != null ? d.priority.toFixed(2) : '—';
 
+  S.lastLiveData = d;
+
   if (isNew) {
     $('scb-display').textContent = '…';
     $('verdict-label').textContent = 'LOADING…';
@@ -414,6 +419,13 @@ async function updateLiveCard(d) {
     await fetchSCBAdvice(d);
     $('scb-loading').classList.add('hidden');
   }
+}
+
+async function refreshSCB() {
+  if (!S.lastLiveData || !S.connected) return;
+  $('scb-loading').classList.remove('hidden');
+  await fetchSCBAdvice(S.lastLiveData);
+  $('scb-loading').classList.add('hidden');
 }
 
 async function fetchSCBAdvice(liveData) {
