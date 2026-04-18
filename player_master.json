@@ -5,7 +5,7 @@
     "ipl_team": "CSK",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 1,
+    "auction_set": 6,
     "nationality": "India",
     "csv_name": "RD Gaikwad",
     "has_2025_data": true
@@ -16,7 +16,7 @@
     "ipl_team": "GT",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 1,
+    "auction_set": 2,
     "nationality": "India",
     "csv_name": "B Sai Sudharsan",
     "has_2025_data": true
@@ -49,7 +49,7 @@
     "ipl_team": "MI",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 1,
+    "auction_set": 3,
     "nationality": "India",
     "csv_name": "SA Yadav",
     "has_2025_data": true
@@ -82,7 +82,7 @@
     "ipl_team": "RR",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 1,
+    "auction_set": 5,
     "nationality": "West Indies",
     "csv_name": "SO Hetmyer",
     "has_2025_data": true
@@ -104,7 +104,7 @@
     "ipl_team": "SRH",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 1,
+    "auction_set": 3,
     "nationality": "Australia",
     "csv_name": "TM Head",
     "has_2025_data": true
@@ -115,7 +115,7 @@
     "ipl_team": "DC",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 2,
+    "auction_set": 4,
     "nationality": "India",
     "csv_name": "AR Patel",
     "has_2025_data": true
@@ -126,7 +126,7 @@
     "ipl_team": "GT",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 2,
+    "auction_set": 1,
     "nationality": "Afghanistan",
     "csv_name": "Rashid Khan",
     "has_2025_data": true
@@ -137,7 +137,7 @@
     "ipl_team": "KKR",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 2,
+    "auction_set": 6,
     "nationality": "Australia",
     "csv_name": "C Green",
     "has_2025_data": false
@@ -159,7 +159,7 @@
     "ipl_team": "LSG",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 2,
+    "auction_set": 4,
     "nationality": "Australia",
     "csv_name": "MR Marsh",
     "has_2025_data": true
@@ -170,7 +170,7 @@
     "ipl_team": "MI",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 2,
+    "auction_set": 3,
     "nationality": "India",
     "csv_name": "HH Pandya",
     "has_2025_data": true
@@ -181,7 +181,7 @@
     "ipl_team": "PBKS",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 2,
+    "auction_set": 4,
     "nationality": "South Africa",
     "csv_name": "M Jansen",
     "has_2025_data": true
@@ -192,7 +192,7 @@
     "ipl_team": "PBKS",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 2,
+    "auction_set": 7,
     "nationality": "Australia",
     "csv_name": "MP Stoinis",
     "has_2025_data": true
@@ -236,7 +236,7 @@
     "ipl_team": "DC",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 3,
+    "auction_set": 6,
     "nationality": "India",
     "csv_name": "Kuldeep Yadav",
     "has_2025_data": true
@@ -247,7 +247,7 @@
     "ipl_team": "DC",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 3,
+    "auction_set": 10,
     "nationality": "Australia",
     "csv_name": "MA Starc",
     "has_2025_data": true
@@ -258,7 +258,7 @@
     "ipl_team": "GT",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 3,
+    "auction_set": 6,
     "nationality": "India",
     "csv_name": "Mohammed Siraj",
     "has_2025_data": true
@@ -269,7 +269,7 @@
     "ipl_team": "GT",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 3,
+    "auction_set": 1,
     "nationality": "India",
     "csv_name": "M Prasidh Krishna",
     "has_2025_data": true
@@ -280,7 +280,7 @@
     "ipl_team": "KKR",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 3,
+    "auction_set": 10,
     "nationality": "Sri Lanka",
     "csv_name": "M Pathirana",
     "has_2025_data": true
@@ -291,7 +291,7 @@
     "ipl_team": "KKR",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 3,
+    "auction_set": 10,
     "nationality": "India",
     "csv_name": "CV Varun",
     "has_2025_data": true
@@ -313,7 +313,7 @@
     "ipl_team": "MI",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 3,
+    "auction_set": 8,
     "nationality": "India",
     "csv_name": "JJ Bumrah",
     "has_2025_data": true
@@ -324,7 +324,7 @@
     "ipl_team": "MI",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 3,
+    "auction_set": 8,
     "nationality": "New Zealand",
     "csv_name": "TA Boult",
     "has_2025_data": true
@@ -335,7 +335,7 @@
     "ipl_team": "PBKS",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 3,
+    "auction_set": 2,
     "nationality": "India",
     "csv_name": "Arshdeep Singh",
     "has_2025_data": true
@@ -346,7 +346,7 @@
     "ipl_team": "PBKS",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 3,
+    "auction_set": 6,
     "nationality": "India",
     "csv_name": "YS Chahal",
     "has_2025_data": true
@@ -357,7 +357,7 @@
     "ipl_team": "RCB",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 3,
+    "auction_set": 4,
     "nationality": "Australia",
     "csv_name": "JR Hazlewood",
     "has_2025_data": true
@@ -368,7 +368,7 @@
     "ipl_team": "RR",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 3,
+    "auction_set": 1,
     "nationality": "England",
     "csv_name": "JC Archer",
     "has_2025_data": true
@@ -379,7 +379,7 @@
     "ipl_team": "CSK",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 4,
+    "auction_set": 2,
     "nationality": "India",
     "csv_name": "SV Samson",
     "has_2025_data": true
@@ -401,7 +401,7 @@
     "ipl_team": "GT",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 4,
+    "auction_set": 1,
     "nationality": "England",
     "csv_name": "JC Buttler",
     "has_2025_data": true
@@ -412,7 +412,7 @@
     "ipl_team": "LSG",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 4,
+    "auction_set": 9,
     "nationality": "West Indies",
     "csv_name": "N Pooran",
     "has_2025_data": true
@@ -423,7 +423,7 @@
     "ipl_team": "LSG",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 4,
+    "auction_set": 3,
     "nationality": "India",
     "csv_name": "RR Pant",
     "has_2025_data": true
@@ -434,7 +434,7 @@
     "ipl_team": "MI",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 4,
+    "auction_set": 2,
     "nationality": "South Africa",
     "csv_name": "Q de Kock",
     "has_2025_data": true
@@ -445,7 +445,7 @@
     "ipl_team": "RCB",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 4,
+    "auction_set": 2,
     "nationality": "England",
     "csv_name": "PD Salt",
     "has_2025_data": true
@@ -456,7 +456,7 @@
     "ipl_team": "SRH",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 4,
+    "auction_set": 1,
     "nationality": "South Africa",
     "csv_name": "H Klaasen",
     "has_2025_data": true
@@ -467,7 +467,7 @@
     "ipl_team": "SRH",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 4,
+    "auction_set": 1,
     "nationality": "India",
     "csv_name": "Ishan Kishan",
     "has_2025_data": true
@@ -478,7 +478,7 @@
     "ipl_team": "CSK",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 5,
+    "auction_set": 6,
     "nationality": "South Africa",
     "csv_name": "D Brevis",
     "has_2025_data": true
@@ -489,7 +489,7 @@
     "ipl_team": "DC",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 5,
+    "auction_set": 6,
     "nationality": "South Africa",
     "csv_name": "DA Miller",
     "has_2025_data": true
@@ -500,7 +500,7 @@
     "ipl_team": "DC",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 5,
+    "auction_set": 10,
     "nationality": "India",
     "csv_name": "N Rana",
     "has_2025_data": true
@@ -511,7 +511,7 @@
     "ipl_team": "DC",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 5,
+    "auction_set": 3,
     "nationality": "Sri Lanka",
     "csv_name": null,
     "has_2025_data": false
@@ -533,7 +533,7 @@
     "ipl_team": "DC",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 5,
+    "auction_set": 4,
     "nationality": "South Africa",
     "csv_name": "T Stubbs",
     "has_2025_data": true
@@ -544,7 +544,7 @@
     "ipl_team": "KKR",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 5,
+    "auction_set": 3,
     "nationality": "India",
     "csv_name": "AM Rahane",
     "has_2025_data": true
@@ -555,7 +555,7 @@
     "ipl_team": "KKR",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 5,
+    "auction_set": 10,
     "nationality": "India",
     "csv_name": "MK Pandey",
     "has_2025_data": true
@@ -566,7 +566,7 @@
     "ipl_team": "KKR",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 5,
+    "auction_set": 6,
     "nationality": "India",
     "csv_name": "RK Singh",
     "has_2025_data": true
@@ -577,7 +577,7 @@
     "ipl_team": "MI",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 5,
+    "auction_set": 7,
     "nationality": "India",
     "csv_name": "Tilak Varma",
     "has_2025_data": true
@@ -588,7 +588,7 @@
     "ipl_team": "RCB",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 5,
+    "auction_set": 1,
     "nationality": "India",
     "csv_name": "RM Patidar",
     "has_2025_data": true
@@ -599,7 +599,7 @@
     "ipl_team": "RCB",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 5,
+    "auction_set": 2,
     "nationality": "Australia",
     "csv_name": "TH David",
     "has_2025_data": true
@@ -610,7 +610,7 @@
     "ipl_team": "RR",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 5,
+    "auction_set": 2,
     "nationality": "India",
     "csv_name": "V Suryavanshi",
     "has_2025_data": true
@@ -621,7 +621,7 @@
     "ipl_team": "CSK",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 2,
     "nationality": "England",
     "csv_name": "J Overton",
     "has_2025_data": true
@@ -632,7 +632,7 @@
     "ipl_team": "CSK",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 4,
     "nationality": "India",
     "csv_name": "S Dube",
     "has_2025_data": true
@@ -643,7 +643,7 @@
     "ipl_team": "DC",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 11,
     "nationality": "New Zealand",
     "csv_name": "KA Jamieson",
     "has_2025_data": true
@@ -654,7 +654,7 @@
     "ipl_team": "GT",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 8,
     "nationality": "New Zealand",
     "csv_name": "GD Phillips",
     "has_2025_data": false
@@ -665,7 +665,7 @@
     "ipl_team": "GT",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 9,
     "nationality": "India",
     "csv_name": "R Tewatia",
     "has_2025_data": true
@@ -676,7 +676,7 @@
     "ipl_team": "GT",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 4,
     "nationality": "India",
     "csv_name": "Washington Sundar",
     "has_2025_data": true
@@ -687,7 +687,7 @@
     "ipl_team": "KKR",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 11,
     "nationality": "New Zealand",
     "csv_name": "R Ravindra",
     "has_2025_data": true
@@ -698,7 +698,7 @@
     "ipl_team": "LSG",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 9,
     "nationality": "India",
     "csv_name": "Abdul Samad",
     "has_2025_data": true
@@ -709,7 +709,7 @@
     "ipl_team": "LSG",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 4,
     "nationality": "South Africa",
     "csv_name": "AK Markram",
     "has_2025_data": true
@@ -731,7 +731,7 @@
     "ipl_team": "MI",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 10,
     "nationality": "South Africa",
     "csv_name": "C Bosch",
     "has_2025_data": true
@@ -742,7 +742,7 @@
     "ipl_team": "MI",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 10,
     "nationality": "India",
     "csv_name": "DL Chahar",
     "has_2025_data": true
@@ -775,7 +775,7 @@
     "ipl_team": "MI",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 11,
     "nationality": "England",
     "csv_name": "WG Jacks",
     "has_2025_data": true
@@ -786,7 +786,7 @@
     "ipl_team": "PBKS",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 11,
     "nationality": "Afghanistan",
     "csv_name": "Azmatullah Omarzai",
     "has_2025_data": true
@@ -808,7 +808,7 @@
     "ipl_team": "SRH",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 6,
+    "auction_set": 2,
     "nationality": "India",
     "csv_name": "Nithish Kumar Reddy",
     "has_2025_data": true
@@ -819,7 +819,7 @@
     "ipl_team": "CSK",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 7,
+    "auction_set": 10,
     "nationality": "West Indies",
     "csv_name": "AJ Hosein",
     "has_2025_data": false
@@ -830,7 +830,7 @@
     "ipl_team": "CSK",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 7,
+    "auction_set": 9,
     "nationality": "India",
     "csv_name": "KK Ahmed",
     "has_2025_data": true
@@ -841,7 +841,7 @@
     "ipl_team": "CSK",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 7,
+    "auction_set": 5,
     "nationality": "Afghanistan",
     "csv_name": "Noor Ahmad",
     "has_2025_data": true
@@ -852,7 +852,7 @@
     "ipl_team": "CSK",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 7,
+    "auction_set": 12,
     "nationality": "India",
     "csv_name": "RD Chahar",
     "has_2025_data": true
@@ -863,7 +863,7 @@
     "ipl_team": "DC",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 7,
+    "auction_set": 3,
     "nationality": "South Africa",
     "csv_name": "L Ngidi",
     "has_2025_data": true
@@ -907,7 +907,7 @@
     "ipl_team": "LSG",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 7,
+    "auction_set": 12,
     "nationality": "South Africa",
     "csv_name": "A Nortje",
     "has_2025_data": true
@@ -918,7 +918,7 @@
     "ipl_team": "LSG",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 7,
+    "auction_set": 5,
     "nationality": "India",
     "csv_name": "Avesh Khan",
     "has_2025_data": true
@@ -940,7 +940,7 @@
     "ipl_team": "RCB",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 7,
+    "auction_set": 3,
     "nationality": "India",
     "csv_name": "B Kumar",
     "has_2025_data": true
@@ -973,7 +973,7 @@
     "ipl_team": "RR",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 7,
+    "auction_set": 3,
     "nationality": "India",
     "csv_name": "Ravi Bishnoi",
     "has_2025_data": true
@@ -1006,7 +1006,7 @@
     "ipl_team": "SRH",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 7,
+    "auction_set": 12,
     "nationality": "India",
     "csv_name": "HV Patel",
     "has_2025_data": true
@@ -1039,7 +1039,7 @@
     "ipl_team": "KKR",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 8,
+    "auction_set": 9,
     "nationality": "New Zealand",
     "csv_name": "FA Allen",
     "has_2025_data": false
@@ -1050,7 +1050,7 @@
     "ipl_team": "MI",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 8,
+    "auction_set": 5,
     "nationality": "South Africa",
     "csv_name": "RD Rickelton",
     "has_2025_data": true
@@ -1061,7 +1061,7 @@
     "ipl_team": "PBKS",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 8,
+    "auction_set": 3,
     "nationality": "India",
     "csv_name": "P Simran Singh",
     "has_2025_data": true
@@ -1072,7 +1072,7 @@
     "ipl_team": "RCB",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 8,
+    "auction_set": 11,
     "nationality": "India",
     "csv_name": "JM Sharma",
     "has_2025_data": true
@@ -1083,7 +1083,7 @@
     "ipl_team": "RR",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 8,
+    "auction_set": 3,
     "nationality": "India",
     "csv_name": "Dhruv Jurel",
     "has_2025_data": true
@@ -1094,7 +1094,7 @@
     "ipl_team": "CSK",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 9,
+    "auction_set": 4,
     "nationality": "India",
     "csv_name": "A Mhatre",
     "has_2025_data": true
@@ -1105,7 +1105,7 @@
     "ipl_team": "CSK",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 9,
+    "auction_set": 5,
     "nationality": "India",
     "csv_name": null,
     "has_2025_data": false
@@ -1127,7 +1127,7 @@
     "ipl_team": "DC",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 9,
+    "auction_set": 5,
     "nationality": "India",
     "csv_name": "Sameer Rizvi",
     "has_2025_data": true
@@ -1138,7 +1138,7 @@
     "ipl_team": "GT",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 9,
+    "auction_set": 12,
     "nationality": "India",
     "csv_name": "M Shahrukh Khan",
     "has_2025_data": true
@@ -1149,7 +1149,7 @@
     "ipl_team": "KKR",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 9,
+    "auction_set": 4,
     "nationality": "India",
     "csv_name": "A Raghuvanshi",
     "has_2025_data": true
@@ -1171,7 +1171,7 @@
     "ipl_team": "KKR",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 9,
+    "auction_set": 8,
     "nationality": "West Indies",
     "csv_name": "R Powell",
     "has_2025_data": true
@@ -1182,7 +1182,7 @@
     "ipl_team": "LSG",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 9,
+    "auction_set": 8,
     "nationality": "India",
     "csv_name": "A Badoni",
     "has_2025_data": true
@@ -1215,7 +1215,7 @@
     "ipl_team": "PBKS",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 9,
+    "auction_set": 13,
     "nationality": "India",
     "csv_name": "Musheer Khan",
     "has_2025_data": true
@@ -1226,7 +1226,7 @@
     "ipl_team": "PBKS",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 9,
+    "auction_set": 11,
     "nationality": "India",
     "csv_name": "N Wadhera",
     "has_2025_data": true
@@ -1237,7 +1237,7 @@
     "ipl_team": "PBKS",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 9,
+    "auction_set": 5,
     "nationality": "India",
     "csv_name": "Priyansh Arya",
     "has_2025_data": true
@@ -1248,7 +1248,7 @@
     "ipl_team": "RCB",
     "role": "BAT",
     "is_overseas": false,
-    "auction_set": 9,
+    "auction_set": 5,
     "nationality": "India",
     "csv_name": "D Padikkal",
     "has_2025_data": true
@@ -1281,7 +1281,7 @@
     "ipl_team": "CSK",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 11,
     "nationality": "India",
     "csv_name": null,
     "has_2025_data": false
@@ -1292,7 +1292,7 @@
     "ipl_team": "DC",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 11,
     "nationality": "India",
     "csv_name": "Ashutosh Sharma",
     "has_2025_data": true
@@ -1314,7 +1314,7 @@
     "ipl_team": "KKR",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 8,
     "nationality": "India",
     "csv_name": "AS Roy",
     "has_2025_data": true
@@ -1325,7 +1325,7 @@
     "ipl_team": "KKR",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 11,
     "nationality": "India",
     "csv_name": "Ramandeep Singh",
     "has_2025_data": true
@@ -1336,7 +1336,7 @@
     "ipl_team": "LSG",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 13,
     "nationality": "India",
     "csv_name": "Shahbaz Ahmed",
     "has_2025_data": true
@@ -1347,7 +1347,7 @@
     "ipl_team": "MI",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 7,
     "nationality": "India",
     "csv_name": "Naman Dhir",
     "has_2025_data": true
@@ -1369,7 +1369,7 @@
     "ipl_team": "MI",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 8,
     "nationality": "West Indies",
     "csv_name": "SE Rutherford",
     "has_2025_data": true
@@ -1380,7 +1380,7 @@
     "ipl_team": "PBKS",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 5,
     "nationality": "Australia",
     "csv_name": null,
     "has_2025_data": false
@@ -1391,7 +1391,7 @@
     "ipl_team": "PBKS",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 13,
     "nationality": "India",
     "csv_name": "Harpreet Brar",
     "has_2025_data": true
@@ -1402,7 +1402,7 @@
     "ipl_team": "PBKS",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 9,
     "nationality": "India",
     "csv_name": "Shashank Singh",
     "has_2025_data": true
@@ -1413,7 +1413,7 @@
     "ipl_team": "RCB",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 13,
     "nationality": "England",
     "csv_name": "JG Bethell",
     "has_2025_data": true
@@ -1424,7 +1424,7 @@
     "ipl_team": "RCB",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 6,
     "nationality": "India",
     "csv_name": "KH Pandya",
     "has_2025_data": true
@@ -1435,7 +1435,7 @@
     "ipl_team": "RCB",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 7,
     "nationality": "West Indies",
     "csv_name": "R Shepherd",
     "has_2025_data": true
@@ -1501,7 +1501,7 @@
     "ipl_team": "SRH",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 12,
     "nationality": "England",
     "csv_name": "LS Livingstone",
     "has_2025_data": true
@@ -1523,7 +1523,7 @@
     "ipl_team": "CSK",
     "role": "AR",
     "is_overseas": false,
-    "auction_set": 10,
+    "auction_set": 4,
     "nationality": "India",
     "csv_name": "A Kamboj",
     "has_2025_data": true
@@ -1532,7 +1532,7 @@
     "id": 179,
     "name": "Donovan Ferreira",
     "ipl_team": "RR",
-    "role": "AR",
+    "role": "BAT",
     "is_overseas": false,
     "auction_set": 10,
     "nationality": "South Africa",
@@ -1545,7 +1545,7 @@
     "ipl_team": "CSK",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 12,
     "nationality": "New Zealand",
     "csv_name": "MJ Henry",
     "has_2025_data": false
@@ -1589,7 +1589,7 @@
     "ipl_team": "DC",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 8,
     "nationality": "India",
     "csv_name": "Mukesh Kumar",
     "has_2025_data": true
@@ -1600,7 +1600,7 @@
     "ipl_team": "DC",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 9,
     "nationality": "India",
     "csv_name": "T Natarajan",
     "has_2025_data": true
@@ -1611,7 +1611,7 @@
     "ipl_team": "DC",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 12,
     "nationality": "India",
     "csv_name": "V Nigam",
     "has_2025_data": true
@@ -1655,7 +1655,7 @@
     "ipl_team": "KKR",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 8,
     "nationality": "Zimbabwe",
     "csv_name": null,
     "has_2025_data": false
@@ -1677,7 +1677,7 @@
     "ipl_team": "KKR",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 10,
     "nationality": "India",
     "csv_name": "VG Arora",
     "has_2025_data": true
@@ -1688,7 +1688,7 @@
     "ipl_team": "LSG",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 13,
     "nationality": "India",
     "csv_name": null,
     "has_2025_data": false
@@ -1710,7 +1710,7 @@
     "ipl_team": "MI",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 13,
     "nationality": "India",
     "csv_name": "M Markande",
     "has_2025_data": false
@@ -1721,7 +1721,7 @@
     "ipl_team": "PBKS",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 8,
     "nationality": "India",
     "csv_name": "Vijaykumar Vyshak",
     "has_2025_data": true
@@ -1732,7 +1732,7 @@
     "ipl_team": "PBKS",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 10,
     "nationality": "Australia",
     "csv_name": "XC Bartlett",
     "has_2025_data": true
@@ -1754,7 +1754,7 @@
     "ipl_team": "RCB",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 5,
     "nationality": "New Zealand",
     "csv_name": null,
     "has_2025_data": false
@@ -1765,7 +1765,7 @@
     "ipl_team": "RCB",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 5,
     "nationality": "India",
     "csv_name": "Rasikh Salam",
     "has_2025_data": true
@@ -1820,7 +1820,7 @@
     "ipl_team": "RR",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 9,
     "nationality": "South Africa",
     "csv_name": "N Burger",
     "has_2025_data": false
@@ -1831,7 +1831,7 @@
     "ipl_team": "SRH",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 7,
     "nationality": "Sri Lanka",
     "csv_name": "E Malinga",
     "has_2025_data": true
@@ -1842,7 +1842,7 @@
     "ipl_team": "SRH",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 8,
     "nationality": "India",
     "csv_name": "Harsh Dubey",
     "has_2025_data": true
@@ -1853,7 +1853,7 @@
     "ipl_team": "SRH",
     "role": "BOWL",
     "is_overseas": false,
-    "auction_set": 11,
+    "auction_set": 8,
     "nationality": "India",
     "csv_name": "JD Unadkat",
     "has_2025_data": true
@@ -1886,7 +1886,7 @@
     "ipl_team": "CSK",
     "role": "WK",
     "is_overseas": false,
-    "auction_set": 12,
+    "auction_set": 13,
     "nationality": "India",
     "csv_name": "KS Sharma",
     "has_2025_data": false
@@ -1966,6 +1966,215 @@
     "auction_set": 12,
     "nationality": "India",
     "csv_name": "R Minz",
+    "has_2025_data": true
+  },
+  {
+    "id": 180,
+    "name": "Prince Yadav",
+    "ipl_team": "LSG",
+    "role": "BOWL",
+    "is_overseas": false,
+    "auction_set": 5,
+    "nationality": "Unknown",
+    "csv_name": "Prince Yadav",
+    "has_2025_data": true
+  },
+  {
+    "id": 181,
+    "name": "Praful Hinge",
+    "ipl_team": "SRH",
+    "role": "BOWL",
+    "is_overseas": false,
+    "auction_set": 7,
+    "nationality": "Unknown",
+    "csv_name": null,
+    "has_2025_data": false
+  },
+  {
+    "id": 182,
+    "name": "Mukul Choudhary",
+    "ipl_team": "LSG",
+    "role": "BOWL",
+    "is_overseas": false,
+    "auction_set": 7,
+    "nationality": "Unknown",
+    "csv_name": null,
+    "has_2025_data": false
+  },
+  {
+    "id": 183,
+    "name": "Shivang Kumar",
+    "ipl_team": "SRH",
+    "role": "BOWL",
+    "is_overseas": false,
+    "auction_set": 9,
+    "nationality": "Unknown",
+    "csv_name": "Shivang Kumar",
+    "has_2025_data": true
+  },
+  {
+    "id": 184,
+    "name": "Brijesh Sharma",
+    "ipl_team": "RR",
+    "role": "BOWL",
+    "is_overseas": false,
+    "auction_set": 9,
+    "nationality": "Unknown",
+    "csv_name": "Brijesh Sharma",
+    "has_2025_data": true
+  },
+  {
+    "id": 185,
+    "name": "Mohsin Khan",
+    "ipl_team": "LSG",
+    "role": "BOWL",
+    "is_overseas": false,
+    "auction_set": 9,
+    "nationality": "Unknown",
+    "csv_name": null,
+    "has_2025_data": false
+  },
+  {
+    "id": 186,
+    "name": "M Siddharth",
+    "ipl_team": "LSG",
+    "role": "BOWL",
+    "is_overseas": false,
+    "auction_set": 11,
+    "nationality": "Unknown",
+    "csv_name": "M Siddharth",
+    "has_2025_data": true
+  },
+  {
+    "id": 187,
+    "name": "Digvesh Singh Rathi",
+    "ipl_team": "LSG",
+    "role": "BOWL",
+    "is_overseas": false,
+    "auction_set": 11,
+    "nationality": "Unknown",
+    "csv_name": null,
+    "has_2025_data": false
+  },
+  {
+    "id": 188,
+    "name": "Ashok Sharma",
+    "ipl_team": "GT",
+    "role": "BOWL",
+    "is_overseas": false,
+    "auction_set": 12,
+    "nationality": "Unknown",
+    "csv_name": "Ashok Sharma",
+    "has_2025_data": true
+  },
+  {
+    "id": 189,
+    "name": "Abhinandan Singh",
+    "ipl_team": "RCB",
+    "role": "BOWL",
+    "is_overseas": false,
+    "auction_set": 12,
+    "nationality": "Unknown",
+    "csv_name": "Abhinandan Singh",
+    "has_2025_data": true
+  },
+  {
+    "id": 190,
+    "name": "Salil Arora",
+    "ipl_team": "SRH",
+    "role": "WK",
+    "is_overseas": false,
+    "auction_set": 12,
+    "nationality": "Unknown",
+    "csv_name": null,
+    "has_2025_data": false
+  },
+  {
+    "id": 191,
+    "name": "Gurjapneet Singh",
+    "ipl_team": "CSK",
+    "role": "BOWL",
+    "is_overseas": false,
+    "auction_set": 12,
+    "nationality": "Unknown",
+    "csv_name": "Gurjapneet Singh",
+    "has_2025_data": true
+  },
+  {
+    "id": 192,
+    "name": "David Payne",
+    "ipl_team": "SRH",
+    "role": "BOWL",
+    "is_overseas": true,
+    "auction_set": 13,
+    "nationality": "Unknown",
+    "csv_name": null,
+    "has_2025_data": false
+  },
+  {
+    "id": 193,
+    "name": "Himmat Singh",
+    "ipl_team": "LSG",
+    "role": "BAT",
+    "is_overseas": false,
+    "auction_set": 13,
+    "nationality": "Unknown",
+    "csv_name": "Himmat Singh",
+    "has_2025_data": true
+  },
+  {
+    "id": 194,
+    "name": "George Linde",
+    "ipl_team": "LSG",
+    "role": "AR",
+    "is_overseas": true,
+    "auction_set": 13,
+    "nationality": "Unknown",
+    "csv_name": null,
+    "has_2025_data": false
+  },
+  {
+    "id": 195,
+    "name": "Auqib Nabi Dar",
+    "ipl_team": "DC",
+    "role": "AR",
+    "is_overseas": false,
+    "auction_set": 13,
+    "nationality": "Unknown",
+    "csv_name": null,
+    "has_2025_data": false
+  },
+  {
+    "id": 196,
+    "name": "Matthew Short",
+    "ipl_team": "CSK",
+    "role": "AR",
+    "is_overseas": true,
+    "auction_set": 13,
+    "nationality": "Unknown",
+    "csv_name": null,
+    "has_2025_data": false
+  },
+  {
+    "id": 197,
+    "name": "Lhuan-Dre Pretorius",
+    "ipl_team": "RR",
+    "role": "AR",
+    "is_overseas": true,
+    "auction_set": 14,
+    "nationality": "Unknown",
+    "csv_name": null,
+    "has_2025_data": false
+  },
+  {
+    "id": 198,
+    "name": "Navdeep Saini",
+    "ipl_team": "KKR",
+    "role": "BOWL",
+    "is_overseas": false,
+    "auction_set": 14,
+    "nationality": "Unknown",
+    "csv_name": "Navdeep Saini",
     "has_2025_data": true
   }
 ]
