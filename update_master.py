@@ -248,6 +248,9 @@ NAME_ALIASES = {
 
 # ── Load master ───────────────────────────────────────────────────────────────
 master = json.load(open('player_master.json'))
+# Reset in_auction flag for all existing entries before marking this year's players
+for m in master:
+    m['in_auction'] = False
 m_by_name = {m['name']: m for m in master}
 max_id = max(m['id'] for m in master)
 
@@ -272,6 +275,7 @@ for full_name, role_raw, team_full, set_num in NEW_DATA:
         entry['auction_set'] = set_num
         entry['role'] = role
         entry['ipl_team'] = team
+        entry['in_auction'] = True
         if old != (set_num, role, team):
             updated_players.append(f"  {master_name}: set {old[0]}→{set_num}, role {old[1]}→{role}, team {old[2]}→{team}")
     else:
@@ -289,6 +293,7 @@ for full_name, role_raw, team_full, set_num in NEW_DATA:
             'nationality': 'Unknown',
             'csv_name': csv_name,
             'has_2025_data': csv_name is not None,
+            'in_auction': True,
         }
         master.append(new_entry)
         m_by_name[full_name] = new_entry

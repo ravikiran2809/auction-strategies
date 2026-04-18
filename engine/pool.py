@@ -720,8 +720,10 @@ def build_pool(
         with open(master_path) as f:
             master_data = json.load(f)
         # Two lookups: csv_name -> meta, and auction_name -> meta
-        csv_to_meta = {p["csv_name"]: p for p in master_data if p.get("csv_name")}
-        name_to_meta = {p["name"]: p for p in master_data}
+        # Only consider players marked as in_auction (this year's auction).
+        auction_master = [p for p in master_data if p.get("in_auction", True)]
+        csv_to_meta = {p["csv_name"]: p for p in auction_master if p.get("csv_name")}
+        name_to_meta = {p["name"]: p for p in auction_master}
 
         filtered_pool = []
         removed_players = []
@@ -733,6 +735,9 @@ def build_pool(
             else:
                 player["ipl_team"] = meta["ipl_team"]
                 player["auction_set"] = meta["auction_set"]
+                # Apply role from master — it's manually curated and more reliable
+                # than the stats-based classifier for borderline/new players.
+                player["role"] = meta["role"]
                 filtered_pool.append(player)
         pool = filtered_pool
 
@@ -748,10 +753,17 @@ def build_pool(
                 stacklevel=2,
             )
 
-        # Add floor-value players from master that have no CSV data
+        # Add floor-value players from master that have no CSV data.
+        # Covers two cases:
+        #   1. csv_name is None  — player has never appeared in the stat CSV
+        #   2. csv_name is set but not in pool — player exists in CSV historically
+        #      but played no matches in the active projection seasons (injured,
+        #      overseas cap, etc.) and was filtered out by min_matches.
         stat_csv_names = {p["player_name"] for p in pool}
-        for pm in master_data:
-            if pm.get("csv_name") is None and pm["name"] not in stat_csv_names:
+        for pm in auction_master:
+            csv = pm.get("csv_name")
+            in_pool = (csv and csv in stat_csv_names) or (pm["name"] in stat_csv_names)
+            if not in_pool:
                 role = pm["role"]  # already normalized (BWL→BOWL in player_master)
                 pts = _FLOOR_PTS.get(role, 38.0)
                 pool.append({
