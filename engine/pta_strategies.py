@@ -245,7 +245,7 @@ class SquadCompletionBidder(PTAManager):
 
         # Compute raw base WTP WITHOUT internal capping so multipliers work correctly.
         premium = player["projected_points"] / max(1.0, self._alt_mean(player, state))
-        raw_wtp = self.cash_per_slot * (premium ** p.base_exp)
+        raw_wtp = self.cash_per_slot * (max(0.0, premium) ** p.base_exp)
 
         # Tier-based multiplier based on priority score
         if priority >= p.must_bid_threshold:
@@ -438,7 +438,7 @@ class AdaptiveRecoveryManager(PTAManager):
         # Compute raw base WTP without internal capping (same fix as SCB: avoid
         # double-desperation so multipliers actually work)
         premium = player["projected_points"] / max(1.0, self._alt_mean(player, state))
-        raw_wtp = self.cash_per_slot * (premium ** p.normal_exp)
+        raw_wtp = self.cash_per_slot * (max(0.0, premium) ** p.normal_exp)
 
         # Hard skip: priority too low — bid base_price as a soft floor rather
         # than completely abstaining; this deploys idle budget on cheap fillers

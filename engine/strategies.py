@@ -176,8 +176,9 @@ class Manager:
         return sum(p["projected_points"] for p in alts) / len(alts) if alts else 75.0
 
     def _premium_wtp(self, player: dict, state: dict, rnd: int, exponent: float = 1.6) -> float:
-        premium = player["projected_points"] / max(1.0, self._alt_mean(player, state))
-        return self._desperation(self.cash_per_slot * (premium ** exponent), state, rnd)
+        ratio = player["projected_points"] / max(1.0, self._alt_mean(player, state))
+        premium = max(0.0, ratio) ** exponent  # guard: negative ratio ^ float exponent → complex
+        return self._desperation(self.cash_per_slot * premium, state, rnd)
 
     def willingness_to_pay(self, player: dict, state: dict, rnd: int) -> float:
         raise NotImplementedError
@@ -366,7 +367,7 @@ class ApexPredator(Manager):
         alt_cost = 0.5 + max(0, alt_pts - 40) * cper
         p_eff = player["projected_points"] / max(0.5, exp)
         a_eff = alt_pts / max(0.5, alt_cost)
-        ratio = (p_eff / max(0.01, a_eff)) ** p.efficiency_exp
+        ratio = max(0.0, p_eff / max(0.01, a_eff)) ** p.efficiency_exp  # guard: negative ratio ^ float → complex
         adj = min(p.adj_max, max(p.adj_min, self.cash_per_slot / max(1.0, exp)))
         return self._desperation(exp * ratio * adj * p.wc_discount, state, rnd)
 
@@ -600,7 +601,8 @@ class PositionalArbitrageur(Manager):
             return 0.0
         p = self.params
         sc = self._scarcity(player["role"], state)
-        premium = (player["projected_points"] / max(1.0, self._alt_mean(player, state))) ** p.premium_exp
+        ratio = player["projected_points"] / max(1.0, self._alt_mean(player, state))
+        premium = max(0.0, ratio) ** p.premium_exp  # guard: negative ratio ^ float exponent → complex
         return self._desperation(self.cash_per_slot * premium * sc, state, rnd)
 
 
