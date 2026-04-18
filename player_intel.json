@@ -1,0 +1,1017 @@
+{
+  "_schema": {
+    "injury_status": "fit | doubtful | injured | unavailable",
+    "form_rating": "float 0.5–1.5; 1.0 = neutral (default). Effect is capped at ±10% on WTP.",
+    "availability_note": "optional free-text reason (e.g. 'Rested for first 3 games')",
+    "last_updated": "YYYY-MM-DD — for staleness tracking"
+  },
+  "_notes": [
+    "Edit this file before each auction session to reflect latest news.",
+    "Players NOT listed are assumed fit + neutral form → multiplier = 1.0.",
+    "injured / unavailable  →  WTP = 0  (strategies will not bid at all).",
+    "doubtful               →  WTP × ~0.40 (strategies bid very cautiously).",
+    "form_rating only takes effect when injury_status = 'fit'; effect is capped at ±10%.",
+    "Run 'python main.py serve' to hot-reload; the server reads this file on startup.",
+    "Last populated: 2026-04-17 from ESPNcricinfo / Cricbuzz IPL 2026 live coverage (after Match 27)."
+  ],
+  "_source_summary": {
+    "orange_cap_top5_after_m24": [
+      "V Kohli (RCB) 228",
+      "H Klaasen (SRH) 224",
+      "RM Patidar (RCB) 222",
+      "Ishan Kishan (SRH) ~210",
+      "P Simran Singh (PBKS) 211"
+    ],
+    "purple_cap_top5_after_m24": [
+      "M Prasidh Krishna (GT) 11wkts",
+      "A Kamboj (CSK) 10wkts",
+      "Ravi Bishnoi (LSG) 9wkts",
+      "Prince Yadav (LSG) 9wkts",
+      "JC Archer (RR) 7wkts"
+    ]
+  },
+  "Abdul Samad": {
+    "injury_status": "fit",
+    "form_rating": 0.82,
+    "availability_note": "Below-average form: 18.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Abhinandan Singh": {
+    "injury_status": "fit",
+    "form_rating": 0.89,
+    "availability_note": "Below-average form: 28.33 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Abhishek Sharma": {
+    "injury_status": "fit",
+    "form_rating": 1.03,
+    "availability_note": "Solid form: 49.8 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "AK Markram": {
+    "injury_status": "fit",
+    "form_rating": 1.01,
+    "availability_note": "Solid form: 46.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "AM Rahane": {
+    "injury_status": "fit",
+    "form_rating": 1.04,
+    "availability_note": "Solid form: 51.6 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "AJ Hosein": {
+    "injury_status": "fit",
+    "form_rating": 0.87,
+    "availability_note": "Below-average form: 25.0 pts/match over 2 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Allah Mohammad Ghazanfar": {
+    "injury_status": "fit",
+    "form_rating": 1.0,
+    "availability_note": "Solid form: 45.0 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "A Raghuvanshi": {
+    "injury_status": "fit",
+    "form_rating": 1.15,
+    "availability_note": "Solid form: 68.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Aniket Verma": {
+    "injury_status": "fit",
+    "form_rating": 0.89,
+    "availability_note": "Below-average form: 29.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "A Nortje": {
+    "injury_status": "fit",
+    "form_rating": 0.6,
+    "availability_note": "Poor form: -10.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "A Kamboj": {
+    "injury_status": "fit",
+    "form_rating": 1.27,
+    "availability_note": "Strong form: 86.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "AS Roy": {
+    "injury_status": "fit",
+    "form_rating": 0.96,
+    "availability_note": "Below-average form: 39.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Arshdeep Singh": {
+    "injury_status": "fit",
+    "form_rating": 1.05,
+    "availability_note": "Solid form: 52.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Ashok Sharma": {
+    "injury_status": "fit",
+    "form_rating": 0.9,
+    "availability_note": "Below-average form: 30.0 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Ashutosh Sharma": {
+    "injury_status": "fit",
+    "form_rating": 1.03,
+    "availability_note": "Solid form: 49.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Auqib Nabi Dar": {
+    "injury_status": "fit",
+    "form_rating": 0.73,
+    "availability_note": "Poor form: 5.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Avesh Khan": {
+    "injury_status": "fit",
+    "form_rating": 1.06,
+    "availability_note": "Solid form: 54.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "AR Patel": {
+    "injury_status": "fit",
+    "form_rating": 1.0,
+    "availability_note": "Solid form: 44.5 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "A Badoni": {
+    "injury_status": "fit",
+    "form_rating": 0.94,
+    "availability_note": "Below-average form: 36.4 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "A Mhatre": {
+    "injury_status": "fit",
+    "form_rating": 1.14,
+    "availability_note": "Solid form: 65.6 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Azmatullah Omarzai": {
+    "injury_status": "doubtful",
+    "form_rating": 0.8,
+    "availability_note": "[QUALITY:low ~0.34x] 0 appearances in 5 PBKS games. Decent but replaceable allrounder — avoid unless confirmed playing.",
+    "last_updated": "2026-04-17"
+  },
+  "B Kumar": {
+    "injury_status": "fit",
+    "form_rating": 1.21,
+    "availability_note": "Strong form: 77.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Blessing Muzarabani": {
+    "injury_status": "fit",
+    "form_rating": 1.27,
+    "availability_note": "2 matches played — strong but limited sample.",
+    "last_updated": "2026-04-17"
+  },
+  "Brijesh Sharma": {
+    "injury_status": "fit",
+    "form_rating": 1.27,
+    "availability_note": "2 matches played — strong but limited sample.",
+    "last_updated": "2026-04-17"
+  },
+  "C Green": {
+    "injury_status": "fit",
+    "form_rating": 0.83,
+    "availability_note": "Below-average form: 20.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Cooper Connolly": {
+    "injury_status": "fit",
+    "form_rating": 1.12,
+    "availability_note": "Solid form: 63.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "C Bosch": {
+    "injury_status": "fit",
+    "form_rating": 0.89,
+    "availability_note": "Below-average form: 28.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "DA Miller": {
+    "injury_status": "fit",
+    "form_rating": 0.94,
+    "availability_note": "Below-average form: 36.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "David Payne": {
+    "injury_status": "injured",
+    "form_rating": 1.0,
+    "availability_note": "Ankle injury. Ruled out of remainder of IPL 2026 (SRH). Confirmed Apr 16. Was replacement for Jack Edwards (also injured).",
+    "last_updated": "2026-04-17"
+  },
+  "DL Chahar": {
+    "injury_status": "fit",
+    "form_rating": 0.8,
+    "availability_note": "Below-average form: 15.67 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "D Padikkal": {
+    "injury_status": "fit",
+    "form_rating": 1.11,
+    "availability_note": "Solid form: 61.6 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "D Brevis": {
+    "injury_status": "fit",
+    "form_rating": 1.05,
+    "availability_note": "Solid form: 52.0 pts/match over 2 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Dhruv Jurel": {
+    "injury_status": "fit",
+    "form_rating": 1.19,
+    "availability_note": "Strong form: 73.4 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Digvesh Singh Rathi": {
+    "injury_status": "fit",
+    "form_rating": 0.91,
+    "availability_note": "Below-average form: 31.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "D Ferreira": {
+    "injury_status": "fit",
+    "form_rating": 0.95,
+    "availability_note": "Below-average form: 37.0 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "E Malinga": {
+    "injury_status": "fit",
+    "form_rating": 1.01,
+    "availability_note": "Solid form: 46.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "FA Allen": {
+    "injury_status": "fit",
+    "form_rating": 0.89,
+    "availability_note": "Below-average form: 28.4 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "George Linde": {
+    "injury_status": "fit",
+    "form_rating": 0.75,
+    "availability_note": "Poor form: 8.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "GD Phillips": {
+    "injury_status": "fit",
+    "form_rating": 0.88,
+    "availability_note": "Below-average form: 27.0 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Gurjapneet Singh": {
+    "injury_status": "fit",
+    "form_rating": 0.88,
+    "availability_note": "Below-average form: 27.5 pts/match over 2 games.",
+    "last_updated": "2026-04-17"
+  },
+  "HH Pandya": {
+    "injury_status": "fit",
+    "form_rating": 1.03,
+    "availability_note": "Solid form: 50.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Harpreet Brar": {
+    "injury_status": "doubtful",
+    "form_rating": 0.7,
+    "availability_note": "[QUALITY:low ~0.29x] 0 appearances in 5 PBKS games. Mediocre T20 impact — not worth the injury risk.",
+    "last_updated": "2026-04-17"
+  },
+  "Harsh Dubey": {
+    "injury_status": "fit",
+    "form_rating": 1.0,
+    "availability_note": "Solid form: 45.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "HV Patel": {
+    "injury_status": "fit",
+    "form_rating": 0.6,
+    "availability_note": "Poor form: -3.33 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "H Klaasen": {
+    "injury_status": "fit",
+    "form_rating": 1.24,
+    "availability_note": "Strong form: 81.6 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Himmat Singh": {
+    "injury_status": "fit",
+    "form_rating": 0.77,
+    "availability_note": "Poor form: 10.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Ishan Kishan": {
+    "injury_status": "fit",
+    "form_rating": 1.32,
+    "availability_note": "Strong form: 92.8 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "JG Bethell": {
+    "injury_status": "fit",
+    "form_rating": 0.77,
+    "availability_note": "Poor form: 10.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Jacob Duffy": {
+    "injury_status": "fit",
+    "form_rating": 1.29,
+    "availability_note": "3 matches played — strong form, limited appearances.",
+    "last_updated": "2026-04-17"
+  },
+  "J Overton": {
+    "injury_status": "fit",
+    "form_rating": 1.38,
+    "availability_note": "Exceptional form: 101.75 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "JJ Bumrah": {
+    "injury_status": "fit",
+    "form_rating": 0.75,
+    "availability_note": "Poor form: 8.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "JD Unadkat": {
+    "injury_status": "fit",
+    "form_rating": 1.05,
+    "availability_note": "Solid form: 52.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "JM Sharma": {
+    "injury_status": "fit",
+    "form_rating": 0.81,
+    "availability_note": "Below-average form: 17.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "JC Archer": {
+    "injury_status": "fit",
+    "form_rating": 1.14,
+    "availability_note": "Solid form: 66.6 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "JC Buttler": {
+    "injury_status": "fit",
+    "form_rating": 1.35,
+    "availability_note": "Strong form: 98.0 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "JR Hazlewood": {
+    "injury_status": "fit",
+    "form_rating": 1.2,
+    "availability_note": "2 matches played — strong but limited sample.",
+    "last_updated": "2026-04-17"
+  },
+  "K Rabada": {
+    "injury_status": "fit",
+    "form_rating": 0.95,
+    "availability_note": "Below-average form: 37.0 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "KS Sharma": {
+    "injury_status": "fit",
+    "form_rating": 0.76,
+    "availability_note": "Poor form: 9.67 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Kartik Tyagi": {
+    "injury_status": "fit",
+    "form_rating": 0.91,
+    "availability_note": "Below-average form: 32.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "KK Ahmed": {
+    "injury_status": "injured",
+    "form_rating": 1.0,
+    "availability_note": "Quadricep injury vs KKR Apr 14. CSK confirmed ruled out rest of IPL 2026.",
+    "last_updated": "2026-04-17"
+  },
+  "KL Rahul": {
+    "injury_status": "fit",
+    "form_rating": 1.05,
+    "availability_note": "Solid form: 52.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "KH Pandya": {
+    "injury_status": "fit",
+    "form_rating": 1.04,
+    "availability_note": "Solid form: 51.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Kuldeep Yadav": {
+    "injury_status": "fit",
+    "form_rating": 0.89,
+    "availability_note": "Below-average form: 28.75 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Kumar Kushagra": {
+    "injury_status": "fit",
+    "form_rating": 0.97,
+    "availability_note": "Solid form: 41.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "KA Jamieson": {
+    "injury_status": "doubtful",
+    "form_rating": 1.1,
+    "availability_note": "[QUALITY:mid ~0.47x] 0 appearances in 5 DC games. Quality tall seamer but chronic injury history — bid only if confirmed fit.",
+    "last_updated": "2026-04-17"
+  },
+  "Lhuan-Dre Pretorius": {
+    "injury_status": "fit",
+    "form_rating": 0.6,
+    "availability_note": "Poor form: -10.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "LS Livingstone": {
+    "injury_status": "fit",
+    "form_rating": 0.84,
+    "availability_note": "Below-average form: 21.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "L Ngidi": {
+    "injury_status": "fit",
+    "form_rating": 1.15,
+    "availability_note": "Solid form: 67.0 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "M Siddharth": {
+    "injury_status": "fit",
+    "form_rating": 1.02,
+    "availability_note": "Solid form: 47.5 pts/match over 2 games.",
+    "last_updated": "2026-04-17"
+  },
+  "MK Pandey": {
+    "injury_status": "fit",
+    "form_rating": 0.77,
+    "availability_note": "Poor form: 10.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "M Jansen": {
+    "injury_status": "fit",
+    "form_rating": 0.97,
+    "availability_note": "Solid form: 40.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "MP Stoinis": {
+    "injury_status": "fit",
+    "form_rating": 0.76,
+    "availability_note": "Poor form: 8.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "M Pathirana": {
+    "injury_status": "doubtful",
+    "form_rating": 1.3,
+    "availability_note": "[QUALITY:high ~0.56x] 0 appearances in KKR games so far. Elite death bowler — worth bidding if fitness confirmed.",
+    "last_updated": "2026-04-17"
+  },
+  "MJ Henry": {
+    "injury_status": "fit",
+    "form_rating": 0.78,
+    "availability_note": "Poor form: 12.67 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Matthew Short": {
+    "injury_status": "fit",
+    "form_rating": 0.71,
+    "availability_note": "Poor form: 2.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "M Markande": {
+    "injury_status": "fit",
+    "form_rating": 0.6,
+    "availability_note": "Poor form: -6.67 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Mayank Yadav": {
+    "injury_status": "injured",
+    "form_rating": 1.0,
+    "availability_note": "0 appearances in 5 LSG games. Recurring pace-injury history; likely injured.",
+    "last_updated": "2026-04-17"
+  },
+  "MR Marsh": {
+    "injury_status": "fit",
+    "form_rating": 0.94,
+    "availability_note": "Below-average form: 35.6 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "MJ Santner": {
+    "injury_status": "doubtful",
+    "form_rating": 1.1,
+    "availability_note": "[QUALITY:mid ~0.47x] Missed MI vs PBKS Apr 16 with illness. Availability game-to-game.",
+    "last_updated": "2026-04-17"
+  },
+  "MA Starc": {
+    "injury_status": "doubtful",
+    "form_rating": 1.4,
+    "availability_note": "[QUALITY:elite ~0.60x] 0 appearances in 5 DC games. World-class pacer — worth bidding cautiously if fit.",
+    "last_updated": "2026-04-17"
+  },
+  "Mohammed Shami": {
+    "injury_status": "fit",
+    "form_rating": 1.0,
+    "availability_note": "Solid form: 45.4 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Mohammed Siraj": {
+    "injury_status": "fit",
+    "form_rating": 0.91,
+    "availability_note": "Below-average form: 31.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Mohsin Khan": {
+    "injury_status": "fit",
+    "form_rating": 1.4,
+    "availability_note": "1 match played — exceptional figures in limited appearance. Small sample.",
+    "last_updated": "2026-04-17"
+  },
+  "Mukesh Kumar": {
+    "injury_status": "fit",
+    "form_rating": 1.02,
+    "availability_note": "Solid form: 48.75 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Mukul Choudhary": {
+    "injury_status": "fit",
+    "form_rating": 1.04,
+    "availability_note": "Solid form: 51.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Musheer Khan": {
+    "injury_status": "doubtful",
+    "form_rating": 0.75,
+    "availability_note": "[QUALITY:low ~0.31x] 0 appearances in 5 PBKS games. Young prospect, limited T20 impact — avoid.",
+    "last_updated": "2026-04-17"
+  },
+  "Naman Dhir": {
+    "injury_status": "fit",
+    "form_rating": 0.99,
+    "availability_note": "Solid form: 43.6 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "N Burger": {
+    "injury_status": "fit",
+    "form_rating": 0.96,
+    "availability_note": "Below-average form: 39.6 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Navdeep Saini": {
+    "injury_status": "fit",
+    "form_rating": 0.6,
+    "availability_note": "Poor form: -10.0 pts/match over 2 games.",
+    "last_updated": "2026-04-17"
+  },
+  "N Wadhera": {
+    "injury_status": "fit",
+    "form_rating": 0.81,
+    "availability_note": "Below-average form: 17.0 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "N Pooran": {
+    "injury_status": "fit",
+    "form_rating": 0.74,
+    "availability_note": "Poor form: 5.8 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Nithish Kumar Reddy": {
+    "injury_status": "fit",
+    "form_rating": 1.19,
+    "availability_note": "Strong form: 74.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "N Rana": {
+    "injury_status": "fit",
+    "form_rating": 0.77,
+    "availability_note": "Poor form: 10.0 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Noor Ahmad": {
+    "injury_status": "fit",
+    "form_rating": 0.99,
+    "availability_note": "Solid form: 43.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Pathum Nissanka": {
+    "injury_status": "fit",
+    "form_rating": 1.09,
+    "availability_note": "Solid form: 59.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "PD Salt": {
+    "injury_status": "fit",
+    "form_rating": 1.1,
+    "availability_note": "Solid form: 59.4 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Praful Hinge": {
+    "injury_status": "fit",
+    "form_rating": 1.4,
+    "availability_note": "1 match played — 210 pts from debut figures. Small sample.",
+    "last_updated": "2026-04-17"
+  },
+  "P Simran Singh": {
+    "injury_status": "fit",
+    "form_rating": 1.29,
+    "availability_note": "Strong form: 89.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Prashant Veer": {
+    "injury_status": "fit",
+    "form_rating": 0.94,
+    "availability_note": "Below-average form: 36.5 pts/match over 2 games.",
+    "last_updated": "2026-04-17"
+  },
+  "M Prasidh Krishna": {
+    "injury_status": "fit",
+    "form_rating": 1.4,
+    "availability_note": "Exceptional form: 115.0 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Prince Yadav": {
+    "injury_status": "fit",
+    "form_rating": 1.27,
+    "availability_note": "Strong form: 85.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Priyansh Arya": {
+    "injury_status": "fit",
+    "form_rating": 1.11,
+    "availability_note": "Solid form: 61.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Q de Kock": {
+    "injury_status": "fit",
+    "form_rating": 1.4,
+    "availability_note": "1 match played — high pts driven by single innings. Small sample.",
+    "last_updated": "2026-04-17"
+  },
+  "R Ravindra": {
+    "injury_status": "doubtful",
+    "form_rating": 1.0,
+    "availability_note": "[QUALITY:mid ~0.43x] 0 appearances in 5 KKR games. Solid allrounder — moderate caution.",
+    "last_updated": "2026-04-17"
+  },
+  "RD Chahar": {
+    "injury_status": "fit",
+    "form_rating": 0.7,
+    "availability_note": "Poor form: 0.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "R Tewatia": {
+    "injury_status": "fit",
+    "form_rating": 0.8,
+    "availability_note": "Poor form: 14.75 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "RM Patidar": {
+    "injury_status": "fit",
+    "form_rating": 1.4,
+    "availability_note": "Exceptional form: 106.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Ramandeep Singh": {
+    "injury_status": "fit",
+    "form_rating": 0.85,
+    "availability_note": "Below-average form: 23.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Rashid Khan": {
+    "injury_status": "fit",
+    "form_rating": 1.3,
+    "availability_note": "Strong form: 90.5 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Rasikh Salam": {
+    "injury_status": "fit",
+    "form_rating": 1.4,
+    "availability_note": "2 matches played. 4 for 24 vs LSG — stepped up in Dayal's absence. Small sample but convincing.",
+    "last_updated": "2026-04-17"
+  },
+  "Ravi Bishnoi": {
+    "injury_status": "fit",
+    "form_rating": 1.23,
+    "availability_note": "Strong form: 80.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "RA Jadeja": {
+    "injury_status": "fit",
+    "form_rating": 1.01,
+    "availability_note": "Solid form: 47.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "RK Singh": {
+    "injury_status": "fit",
+    "form_rating": 0.91,
+    "availability_note": "Below-average form: 31.6 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "RR Pant": {
+    "injury_status": "fit",
+    "form_rating": 1.01,
+    "availability_note": "Solid form: 46.8 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "R Parag": {
+    "injury_status": "fit",
+    "form_rating": 0.95,
+    "availability_note": "Below-average form: 37.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "RG Sharma": {
+    "injury_status": "doubtful",
+    "form_rating": 1.3,
+    "availability_note": "[QUALITY:high ~0.56x] Retired hurt vs RCB Apr 12. Leg injury, started running, day-to-day per Jayawardene.",
+    "last_updated": "2026-04-17"
+  },
+  "R Shepherd": {
+    "injury_status": "fit",
+    "form_rating": 1.0,
+    "availability_note": "Solid form: 45.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "R Powell": {
+    "injury_status": "fit",
+    "form_rating": 1.03,
+    "availability_note": "Solid form: 49.33 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "RD Gaikwad": {
+    "injury_status": "fit",
+    "form_rating": 0.78,
+    "availability_note": "Poor form: 12.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "RD Rickelton": {
+    "injury_status": "fit",
+    "form_rating": 1.03,
+    "availability_note": "Solid form: 49.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "B Sai Sudharsan": {
+    "injury_status": "fit",
+    "form_rating": 1.05,
+    "availability_note": "Solid form: 52.5 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Salil Arora": {
+    "injury_status": "fit",
+    "form_rating": 0.84,
+    "availability_note": "Below-average form: 21.75 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Sameer Rizvi": {
+    "injury_status": "fit",
+    "form_rating": 1.15,
+    "availability_note": "Solid form: 67.75 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Sandeep Sharma": {
+    "injury_status": "fit",
+    "form_rating": 0.93,
+    "availability_note": "Below-average form: 35.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "SV Samson": {
+    "injury_status": "fit",
+    "form_rating": 1.15,
+    "availability_note": "Solid form: 67.4 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Sarfaraz Khan": {
+    "injury_status": "fit",
+    "form_rating": 1.12,
+    "availability_note": "Solid form: 63.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Shahbaz Ahmed": {
+    "injury_status": "fit",
+    "form_rating": 0.71,
+    "availability_note": "Poor form: 1.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "M Shahrukh Khan": {
+    "injury_status": "fit",
+    "form_rating": 0.75,
+    "availability_note": "Poor form: 7.0 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "SN Thakur": {
+    "injury_status": "fit",
+    "form_rating": 0.95,
+    "availability_note": "Below-average form: 37.8 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Shashank Singh": {
+    "injury_status": "fit",
+    "form_rating": 0.98,
+    "availability_note": "Solid form: 42.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "SE Rutherford": {
+    "injury_status": "fit",
+    "form_rating": 0.96,
+    "availability_note": "Below-average form: 38.6 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "SO Hetmyer": {
+    "injury_status": "fit",
+    "form_rating": 0.85,
+    "availability_note": "Below-average form: 22.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "S Dube": {
+    "injury_status": "fit",
+    "form_rating": 1.02,
+    "availability_note": "Solid form: 48.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Shivang Kumar": {
+    "injury_status": "fit",
+    "form_rating": 1.04,
+    "availability_note": "Solid form: 51.5 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "SS Iyer": {
+    "injury_status": "fit",
+    "form_rating": 1.4,
+    "availability_note": "Exceptional form: 106.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Shubman Gill": {
+    "injury_status": "fit",
+    "form_rating": 1.4,
+    "availability_note": "Exceptional form: 111.0 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "SP Narine": {
+    "injury_status": "fit",
+    "form_rating": 1.11,
+    "availability_note": "Solid form: 61.5 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "SA Yadav": {
+    "injury_status": "fit",
+    "form_rating": 0.94,
+    "availability_note": "Below-average form: 36.6 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Suyash Sharma": {
+    "injury_status": "fit",
+    "form_rating": 0.97,
+    "availability_note": "Solid form: 41.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "T Natarajan": {
+    "injury_status": "fit",
+    "form_rating": 1.01,
+    "availability_note": "Solid form: 46.5 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Tilak Varma": {
+    "injury_status": "fit",
+    "form_rating": 0.86,
+    "availability_note": "Below-average form: 24.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "TH David": {
+    "injury_status": "fit",
+    "form_rating": 1.12,
+    "availability_note": "Solid form: 62.4 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "TM Head": {
+    "injury_status": "fit",
+    "form_rating": 0.99,
+    "availability_note": "Solid form: 43.0 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "TA Boult": {
+    "injury_status": "fit",
+    "form_rating": 0.76,
+    "availability_note": "Poor form: 8.67 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "T Stubbs": {
+    "injury_status": "fit",
+    "form_rating": 1.04,
+    "availability_note": "Solid form: 51.0 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "TU Deshpande": {
+    "injury_status": "fit",
+    "form_rating": 1.01,
+    "availability_note": "Solid form: 47.0 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "VG Arora": {
+    "injury_status": "fit",
+    "form_rating": 0.94,
+    "availability_note": "Below-average form: 36.2 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "V Suryavanshi": {
+    "injury_status": "fit",
+    "form_rating": 1.27,
+    "availability_note": "Strong form: 85.8 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "CV Varun": {
+    "injury_status": "fit",
+    "form_rating": 0.6,
+    "availability_note": "Poor form: -10.0 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "VR Iyer": {
+    "injury_status": "fit",
+    "form_rating": 1.09,
+    "availability_note": "Solid form: 59.0 pts/match over 1 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Vijaykumar Vyshak": {
+    "injury_status": "fit",
+    "form_rating": 1.04,
+    "availability_note": "Solid form: 51.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "V Nigam": {
+    "injury_status": "fit",
+    "form_rating": 0.81,
+    "availability_note": "Below-average form: 16.33 pts/match over 3 games.",
+    "last_updated": "2026-04-17"
+  },
+  "V Kohli": {
+    "injury_status": "fit",
+    "form_rating": 1.31,
+    "availability_note": "Strong form: 90.8 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "Washington Sundar": {
+    "injury_status": "fit",
+    "form_rating": 1.1,
+    "availability_note": "Solid form: 60.0 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "WG Jacks": {
+    "injury_status": "doubtful",
+    "form_rating": 0.8,
+    "availability_note": "[QUALITY:low ~0.34x] 0 appearances in 5 MI games. Utility allrounder — not worth significant risk premium.",
+    "last_updated": "2026-04-17"
+  },
+  "XC Bartlett": {
+    "injury_status": "fit",
+    "form_rating": 0.93,
+    "availability_note": "Below-average form: 34.6 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "YBK Jaiswal": {
+    "injury_status": "fit",
+    "form_rating": 1.17,
+    "availability_note": "Strong form: 70.6 pts/match over 5 games.",
+    "last_updated": "2026-04-17"
+  },
+  "YS Chahal": {
+    "injury_status": "fit",
+    "form_rating": 0.91,
+    "availability_note": "Below-average form: 31.25 pts/match over 4 games.",
+    "last_updated": "2026-04-17"
+  },
+  "MS Dhoni": {
+    "injury_status": "doubtful",
+    "form_rating": 1.2,
+    "availability_note": "[QUALITY:high ~0.52x] Calf injury since season start. In rehab, not batted full tilt. Return timeline open.",
+    "last_updated": "2026-04-17"
+  },
+  "PJ Cummins": {
+    "injury_status": "doubtful",
+    "form_rating": 1.4,
+    "availability_note": "[QUALITY:elite ~0.60x] Back injury. Cleared after scans in Sydney, rejoining SRH squad Apr 17. Targeting return vs RR Jaipur Apr 25. Has not played any games yet this season.",
+    "last_updated": "2026-04-17"
+  },
+  "Yash Dayal": {
+    "injury_status": "injured",
+    "form_rating": 1.0,
+    "availability_note": "Absent from RCB lineup; Rasikh Salam stepped up in Dayal's absence.",
+    "last_updated": "2026-04-17"
+  },
+  "NT Ellis": {
+    "injury_status": "unavailable",
+    "form_rating": 1.0,
+    "availability_note": "Ruled out entire IPL 2026 season (CSK). Replacement Spencer Johnson also delayed.",
+    "last_updated": "2026-04-17"
+  },
+  "T Banton": {
+    "injury_status": "injured",
+    "form_rating": 1.0,
+    "availability_note": "Finger injury. Ruled out of IPL 2026 (GT). Replaced by Esterhuizen.",
+    "last_updated": "2026-04-17"
+  },
+  "SM Curran": {
+    "injury_status": "injured",
+    "form_rating": 1.0,
+    "availability_note": "Groin injury. Ruled out of entire IPL 2026 (RR). Replaced by Shanaka.",
+    "last_updated": "2026-04-17"
+  }
+}
