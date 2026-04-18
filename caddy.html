@@ -192,7 +192,7 @@
         <div class="amount" id="scb-display">—</div>
       </div>
       <div class="bid-box arm">
-        <label>🤖 ARM bot bid</label>
+        <label>🤖 ARM bot</label>
         <div class="amount" id="arm-display">—</div>
       </div>
       <div class="bid-box" style="background:var(--surface2)">
@@ -385,7 +385,17 @@ async function updateLiveCard(d) {
   $('player-name-display').textContent = playerName;
   $('player-pts').textContent = p.projected_points ? p.projected_points.toFixed(1) + 'pts' : '—';
   $('floor-display').textContent = fmt(d.current_bid || 0);
-  $('arm-display').textContent = d.arm_bid != null ? fmt(d.arm_bid) : '—';
+  // Show only whether ARM bot is bidding, not the actual amount
+  if (d.arm_bid != null) {
+    const armBidding = d.arm_bid > (d.current_bid || 0);
+    $('arm-display').textContent = armBidding ? 'BIDDING' : 'PASSING';
+    $('arm-display').style.color = armBidding ? 'var(--bid)' : 'var(--pass)';
+    $('arm-display').style.fontSize = '14px';
+  } else {
+    $('arm-display').textContent = '—';
+    $('arm-display').style.color = '';
+    $('arm-display').style.fontSize = '';
+  }
   $('my-max-display').textContent = fmt(myAvail());
   $('last-updated').textContent = new Date().toLocaleTimeString();
   $('quick-player-name').textContent = playerName;
