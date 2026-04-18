@@ -22,6 +22,8 @@ from __future__ import annotations
 
 import json
 import logging
+import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Optional
 
@@ -46,8 +48,14 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from engine.export import load_pool, export_pool, export_insights
+from engine.intel import load_intel
 from engine.overrides import load_overrides, set_override, remove_override
+from engine.pta_strategies import register_pta_strategies as _register_pta
 from engine.strategies import STRATEGY_REGISTRY, load_params
+
+# Register PTA strategies (SCB, ARM, PersonaCounter) into the shared registry.
+# Must run before any route handler that calls STRATEGY_REGISTRY.
+_register_pta()
 from engine.pool import build_pool, WeightedSeasonModel
 
 _POOL_PATH            = Path("player_pool.json")
@@ -68,20 +76,108 @@ def _build_master_map() -> dict[str, dict]:
 
 _MASTER_MAP: dict[str, dict] = _build_master_map()
 
+# ── SQLite persistence ────────────────────────────────────────────────────────
+# advisor.db stores:
+#   sale_events   — one row per completed sale; hydrates MarketAnalyzer on restart
+#   param_overrides — mid-auction strategy param tweaks per tourney
+_DB_PATH = Path("advisor.db")
+
+
+def _init_db() -> None:
+    """Create tables if they don't exist.  Safe to call on every startup."""
+    with sqlite3.connect(_DB_PATH) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS sale_events (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                tourney_id   TEXT    NOT NULL,
+                player_name  TEXT    NOT NULL,
+                price        REAL    NOT NULL,
+                buyer        TEXT    NOT NULL,
+                vorp         REAL    NOT NULL DEFAULT 1.0,
+                cr_per_vorp  REAL    NOT NULL DEFAULT 1.0,
+                role         TEXT,
+                tier         INTEGER,
+                projected_points REAL,
+                ts           TEXT    NOT NULL DEFAULT (datetime('now'))
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS param_overrides (
+                tourney_id     TEXT NOT NULL,
+                strategy       TEXT NOT NULL,
+                overrides_json TEXT NOT NULL,
+                updated_at     TEXT NOT NULL DEFAULT (datetime('now')),
+                PRIMARY KEY (tourney_id, strategy)
+            )
+        """)
+        conn.commit()
+
+
+_init_db()
+
+# ── Player market intelligence ────────────────────────────────────────────────
+# Load player_intel.json if present.  The registry is a module-level singleton
+# in engine.intel; strategies call intel_mult() which returns 1.0 when no file
+# is loaded, so this is a safe no-op when the file is absent or empty.
+_intel = load_intel()
+if len(_intel) > 0:
+    log.info("Player intel loaded: %d entries from player_intel.json", len(_intel))
+else:
+    log.info("player_intel.json not found or empty — intel adjustments disabled")
+
+
+@contextmanager
+def _db():
+    conn = sqlite3.connect(_DB_PATH)
+    conn.row_factory = sqlite3.Row
+    try:
+        yield conn
+        conn.commit()
+    finally:
+        conn.close()
+
+
 # ── Session-scoped MarketAnalyzers ────────────────────────────────────────────
-# One MarketAnalyzer per live tourney, keyed by tourney_id.
-# Initialised on the first POST /api/advice/sold for a given tourney.
-# Accumulates real sale history so market_mode reflects actual auction dynamics.
-# Without this, bids called via /api/advice always see market_mode='normal'.
-from engine.market import MarketAnalyzer as _MarketAnalyzer
+# In-memory cache: rehydrated from SQLite on first use after a restart.
+from engine.market import MarketAnalyzer as _MarketAnalyzer, SaleRecord as _SaleRecord
 _sessions: dict[str, _MarketAnalyzer] = {}
+_session_cr_per_vorp: dict[str, float] = {}  # last market rate computed for each session
+_last_query: dict[str, dict] = {}  # last /api/advice request per tourney_id (for caddy live polling)
+
+
+def _hydrate_session_from_db(tourney_id: str) -> _MarketAnalyzer:
+    """Rebuild a MarketAnalyzer from persisted sale_events rows."""
+    ma = _MarketAnalyzer()
+    with _db() as conn:
+        rows = conn.execute(
+            "SELECT player_name, price, buyer, vorp, cr_per_vorp, role, tier, projected_points "
+            "FROM sale_events WHERE tourney_id = ? ORDER BY id",
+            (tourney_id,),
+        ).fetchall()
+    for row in rows:
+        player = {
+            "player_name":       row["player_name"],
+            "role":              row["role"] or "BAT",
+            "tier":              row["tier"] or 3,
+            "projected_points":  row["projected_points"] or 0.0,
+            "vorp":              row["vorp"],
+        }
+        ma.record_sale(player, row["price"], row["buyer"], row["cr_per_vorp"])
+    return ma
 
 
 def _get_session(tourney_id: str) -> _MarketAnalyzer:
-    """Return the MarketAnalyzer for a tourney, creating it if needed."""
+    """Return the MarketAnalyzer for a tourney; rehydrate from DB if not in cache."""
     if tourney_id not in _sessions:
-        _sessions[tourney_id] = _MarketAnalyzer()
+        _sessions[tourney_id] = _hydrate_session_from_db(tourney_id)
     return _sessions[tourney_id]
+
+
+def _clear_session(tourney_id: str) -> bool:
+    existed = tourney_id in _sessions
+    _sessions.pop(tourney_id, None)
+    _session_cr_per_vorp.pop(tourney_id, None)  # also clear the stored rate
+    return existed
 
 app = FastAPI(title="IPL Auction Advisor", version="1.0")
 
@@ -99,7 +195,13 @@ app.mount("/static", StaticFiles(directory=str(_HTML_DIR), html=True), name="sta
 
 @app.get("/", include_in_schema=False)
 def root():
-    return FileResponse(_HTML_DIR / "ipl_live_advisor.html")
+    return FileResponse(_HTML_DIR / "caddy.html")
+
+
+@app.get("/caddy", include_in_schema=False)
+def caddy():
+    """Lightweight live caddy for the human player — polls /api/session/{id}/live."""
+    return FileResponse(_HTML_DIR / "caddy.html")
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -157,6 +259,10 @@ class AdviceRequest(BaseModel):
     or API consumer that can supply current auction state.
 
     player_name: csv_name or auction_name of the player currently on the block.
+    current_bid: current bid on the floor (₹ Cr) — used to compute remaining headroom.
+                 If omitted, defaults to 0. The recommended_bid in the response is
+                 always the strategy's ceiling; callers should bid recommended_bid
+                 only if current_bid < recommended_bid.
     my_purse:    current remaining purse (₹ Cr).
     my_roster:   list of player identifiers (csv_name or auction_name) in my squad.
     opponents:   list of {name, purse, roster: [player identifiers]}.
@@ -168,12 +274,14 @@ class AdviceRequest(BaseModel):
                  the Spring Boot bot integration.
     """
     player_name: str
+    current_bid: float = 0.0
     my_purse: float = 120.0
     my_roster: list[str] = []
     opponents: list[dict] = []
     strategy: str = "SquadCompletionBidder"
     evolved: bool = True
     tourney_id: Optional[str] = None
+    field_size: int = 8   # total number of teams in the auction (used to calibrate cr_per_vorp)
 
 
 class SoldEvent(BaseModel):
@@ -459,6 +567,13 @@ def post_advice(req: AdviceRequest):
     for p in remaining:
         role = p.get("role", "BAT")
         if role in pool_by_role:
+            # Use intel-adjusted projected_points so role_cliff / role_depth
+            # correctly treat injured/unavailable players as low-value.
+            # We shallow-copy the player dict to avoid mutating the shared pool.
+            from engine.intel import intel_mult as _imult
+            im = _imult(p["player_name"])
+            if im < 1.0:
+                p = {**p, "projected_points": p["projected_points"] * im}
             pool_by_role[role].append(p)
     for role in pool_by_role:
         pool_by_role[role].sort(key=lambda x: x["projected_points"], reverse=True)
@@ -493,12 +608,31 @@ def post_advice(req: AdviceRequest):
         "roster_players": my_roster_players,
     }
 
+    # Scale cr_per_vorp to the full expected field size.
+    # When Spring Boot sends fewer opponents than the actual field (or opponents=[]),
+    # the naive total available cash underrepresents market liquidity, causing sale prices
+    # to look like extreme "overbid" and breaking market_mode signals.  Extrapolate to
+    # req.field_size (default 8) using the known teams' per-team average.
+    n_teams_known = len(req.opponents) + 1  # +1 for our team
+    if n_teams_known < req.field_size and n_teams_known > 0:
+        avg_avail_per_team = (my_avail + opp_avail) / n_teams_known
+        scaled_avail = avg_avail_per_team * req.field_size
+    else:
+        scaled_avail = my_avail + opp_avail
+
     state = {
         "players_remaining": len(remaining),
-        "cr_per_vorp":       (my_avail + opp_avail) / rem_vorp if rem_vorp > 0 else 0.0,
+        "cr_per_vorp":       scaled_avail / rem_vorp if rem_vorp > 0 else 0.0,
         "pool_by_role":      pool_by_role,
         "agent_states":      agent_states,
     }
+
+    # Store this session's market rate so /api/advice/sold can use it.
+    # This fixes market_mode: sold events use the true market cr_per_vorp
+    # (total purse / total VORP) rather than back-computing it from the sale price,
+    # which would always produce a ratio ≈ 1.0 (always "fair").
+    if req.tourney_id:
+        _session_cr_per_vorp[req.tourney_id] = state["cr_per_vorp"]
 
     if req.strategy not in STRATEGY_REGISTRY:
         raise HTTPException(
@@ -508,6 +642,16 @@ def post_advice(req: AdviceRequest):
 
     cls, _ = STRATEGY_REGISTRY[req.strategy]
     params  = load_params(req.strategy, evolved=req.evolved)
+
+    # Merge any active mid-auction param overrides for this tourney.
+    if req.tourney_id:
+        active_overrides = _get_active_overrides(req.tourney_id, req.strategy)
+        if active_overrides:
+            base_dict = params.to_dict()
+            base_dict.update(active_overrides)
+            _, params_cls = STRATEGY_REGISTRY[req.strategy]
+            params = params_cls.from_dict(base_dict)
+
     agent   = cls(name="__me__", params=params)
 
     # If a tourney_id is supplied, replace the fresh MarketAnalyzer with the
@@ -526,6 +670,14 @@ def post_advice(req: AdviceRequest):
 
     bid = round(float(agent.bid(player, state, rnd=1)), 2)
 
+    # Cap at 20% of remaining purse to prevent single-player over-commitment.
+    # The evolved multipliers (must_bid × cliff ≈ 2.3×) were trained bot-vs-bot
+    # and push elite outliers (Narine, Sai Sudharsan) to ₹30+ Cr — above real IPL
+    # auction highs (Starc ₹24.75 Cr, Kohli ₹21 Cr).  20% keeps the ceiling at
+    # ₹24 Cr for a ₹120 Cr purse, matching the top of real competitive bidding.
+    purse_cap = round(req.my_purse * 0.20, 2)
+    bid = min(bid, purse_cap)
+
     # ── Decision log — shows exactly why the strategy returned this ceiling ──
     priority = round(float(agent._target_priority(player, state)), 3)
     market_mode = agent._market.market_mode
@@ -541,14 +693,36 @@ def post_advice(req: AdviceRequest):
         req.my_purse, my_slots, len(my_roster_players), len(req.opponents),
     )
 
-    return {
+    resp = {
         "strategy":        req.strategy,
         "player_name":     player["player_name"],
         "auction_name":    player.get("auction_name", player["player_name"]),
         "recommended_bid": bid,
+        "current_bid":     round(req.current_bid, 2),
+        "should_bid":      bid > req.current_bid,   # True if we'd raise the current bid
         "my_slots":        my_slots,
         "my_max_bid":      round(float(my_avail), 2),
     }
+
+    # Store for caddy live polling — keyed by tourney_id so the human advisor
+    # can detect when a new player is nominated and fetch SCB advice automatically.
+    if req.tourney_id:
+        _last_query[req.tourney_id] = {
+            "player_name":     req.player_name,
+            "player":          player,
+            "current_bid":     round(req.current_bid, 2),
+            "my_purse":        req.my_purse,
+            "my_roster":       req.my_roster,
+            "opponents":       req.opponents,
+            "evolved":         req.evolved,
+            "field_size":      req.field_size,
+            "strategy":        req.strategy,
+            "recommended_bid": bid,
+            "priority":        priority,
+            "market_mode":     market_mode,
+        }
+
+    return resp
 
 
 # ── Sale events (from Spring Boot bot integration) ───────────────────────────
@@ -578,12 +752,32 @@ def post_sold(event: SoldEvent):
 
     market = _get_session(event.tourney_id)
 
-    # Derive cr_per_vorp: how much each VORP point is worth at this sale price.
-    # Falls back to 1.0 if vorp is missing to avoid division by zero.
+    # Use the market cr_per_vorp stored from the last /api/advice call for this session.
+    # This is the correct rate: (total remaining purse) / (total remaining VORP).
+    # Falling back to price/vorp is self-referential and makes market_mode always "fair".
     vorp = player.get("vorp") or 1.0
-    cr_per_vorp = event.price / vorp
+    cr_per_vorp = _session_cr_per_vorp.get(event.tourney_id, event.price / vorp)
 
     market.record_sale(player, event.price, event.buyer, cr_per_vorp)
+
+    # Persist to SQLite for restart recovery.
+    with _db() as conn:
+        conn.execute(
+            "INSERT INTO sale_events "
+            "(tourney_id, player_name, price, buyer, vorp, cr_per_vorp, role, tier, projected_points) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                event.tourney_id,
+                player["player_name"],
+                event.price,
+                event.buyer,
+                vorp,
+                cr_per_vorp,
+                player.get("role"),
+                player.get("tier"),
+                player.get("projected_points"),
+            ),
+        )
 
     log.info(
         "SOLD    tourney=%-20s  player=%-22s  price=%5.2f Cr  buyer=%-20s  "
@@ -610,12 +804,171 @@ def post_sold(event: SoldEvent):
 @app.delete("/api/session/{tourney_id}")
 def delete_session(tourney_id: str):
     """
-    Clear the MarketAnalyzer session for a tourney.
-    Call this when the auction ends to free memory.
+    Clear the MarketAnalyzer session for a tourney (in-memory + DB rows).
+    Call this when the auction ends.
     """
-    existed = tourney_id in _sessions
-    _sessions.pop(tourney_id, None)
+    existed = _clear_session(tourney_id)
+    _last_query.pop(tourney_id, None)
+    with _db() as conn:
+        conn.execute("DELETE FROM sale_events WHERE tourney_id = ?", (tourney_id,))
     return {"ok": True, "existed": existed}
+
+
+@app.get("/api/sessions")
+def list_sessions():
+    """Debug endpoint — returns all active tourney IDs and the last player seen for each."""
+    return {
+        "active_sessions": [
+            {"tourney_id": k, "last_player": v.get("player_name"), "strategy": v.get("strategy")}
+            for k, v in _last_query.items()
+        ]
+    }
+
+
+@app.get("/api/session/{tourney_id}/live")
+def get_session_live(tourney_id: str):
+    """
+    Real-time snapshot for the human caddy advisor (caddy.html).
+
+    Polled every ~2 s by the human's browser. Returns the last player the ARM bot
+    was queried about, its recommended bid, and recent sale history so the caddy can
+    auto-fetch SCB advice for the same player using the human's own state.
+
+    Returns {has_update: false} when no advice has been requested yet for this tourney.
+    """
+    query = _last_query.get(tourney_id)
+    if not query:
+        return {"has_update": False}
+
+    with _db() as conn:
+        rows = conn.execute(
+            "SELECT player_name, price, buyer, role, tier, projected_points "
+            "FROM sale_events WHERE tourney_id = ? ORDER BY id DESC LIMIT 10",
+            (tourney_id,),
+        ).fetchall()
+
+    recent_sales = [
+        {"player": r["player_name"], "price": r["price"], "buyer": r["buyer"],
+         "role": r["role"], "tier": r["tier"], "projected_points": r["projected_points"]}
+        for r in rows
+    ]
+
+    return {
+        "has_update":       True,
+        "current_player":   query["player_name"],
+        "player":           query["player"],
+        "current_bid":      query["current_bid"],
+        "arm_bid":          query["recommended_bid"],
+        "arm_should_bid":   query["recommended_bid"] > query["current_bid"],
+        "priority":         query["priority"],
+        "market_mode":      query["market_mode"],
+        "bot_purse":        query["my_purse"],
+        "bot_roster":       query["my_roster"],
+        "opponents":        query["opponents"],
+        "evolved":          query["evolved"],
+        "field_size":       query["field_size"],
+        "recent_sales":     recent_sales,
+    }
+
+
+# ── Mid-auction param overrides ───────────────────────────────────────────────
+class ParamOverrideRequest(BaseModel):
+    """
+    Set temporary param overrides for a strategy within a specific tourney.
+    Overrides are shallow-merged onto loaded params before strategy instantiation.
+    Unknown field names are rejected to prevent silent misconfigurations.
+
+    Example:
+        POST /api/params/override
+        {
+          "tourney_id": "GroupA_IPL2026",
+          "strategy":   "SquadCompletionBidder",
+          "overrides":  { "must_bid_mult": 2.5 }
+        }
+    """
+    tourney_id: str
+    strategy: str
+    overrides: dict
+
+
+def _get_active_overrides(tourney_id: str, strategy: str) -> dict:
+    """Load active param overrides for a tourney+strategy from SQLite."""
+    with _db() as conn:
+        row = conn.execute(
+            "SELECT overrides_json FROM param_overrides WHERE tourney_id = ? AND strategy = ?",
+            (tourney_id, strategy),
+        ).fetchone()
+    return json.loads(row["overrides_json"]) if row else {}
+
+
+@app.post("/api/params/override")
+def post_param_override(req: ParamOverrideRequest):
+    """Set temporary param overrides for a strategy within a tourney."""
+    if req.strategy not in STRATEGY_REGISTRY:
+        raise HTTPException(status_code=404, detail=f"Unknown strategy '{req.strategy}'")
+
+    # Validate field names against the strategy's param dataclass
+    _, params_cls = STRATEGY_REGISTRY[req.strategy]
+    default_params = load_params(req.strategy)
+    valid_fields = set(default_params.to_dict().keys())
+    invalid = [k for k in req.overrides if k not in valid_fields]
+    if invalid:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unknown param fields for {req.strategy}: {invalid}. "
+                   f"Valid: {sorted(valid_fields)}",
+        )
+
+    with _db() as conn:
+        conn.execute(
+            "INSERT INTO param_overrides (tourney_id, strategy, overrides_json, updated_at) "
+            "VALUES (?, ?, ?, datetime('now')) "
+            "ON CONFLICT(tourney_id, strategy) DO UPDATE SET "
+            "overrides_json = excluded.overrides_json, updated_at = excluded.updated_at",
+            (req.tourney_id, req.strategy, json.dumps(req.overrides)),
+        )
+
+    log.info(
+        "PARAM_OVERRIDE  tourney=%-20s  strategy=%-26s  overrides=%s",
+        req.tourney_id, req.strategy, req.overrides,
+    )
+    return {"ok": True, "tourney_id": req.tourney_id, "strategy": req.strategy,
+            "overrides": req.overrides}
+
+
+@app.get("/api/params/override/{tourney_id}")
+def get_param_overrides(tourney_id: str):
+    """Return all active param overrides for a tourney."""
+    with _db() as conn:
+        rows = conn.execute(
+            "SELECT strategy, overrides_json, updated_at FROM param_overrides "
+            "WHERE tourney_id = ?",
+            (tourney_id,),
+        ).fetchall()
+    result = {
+        row["strategy"]: {
+            "overrides":   json.loads(row["overrides_json"]),
+            "updated_at":  row["updated_at"],
+        }
+        for row in rows
+    }
+    return {"tourney_id": tourney_id, "overrides": result}
+
+
+@app.delete("/api/params/override/{tourney_id}")
+def delete_param_overrides(tourney_id: str, strategy: Optional[str] = None):
+    """Clear param overrides for a tourney (all strategies or a specific one)."""
+    with _db() as conn:
+        if strategy:
+            conn.execute(
+                "DELETE FROM param_overrides WHERE tourney_id = ? AND strategy = ?",
+                (tourney_id, strategy),
+            )
+        else:
+            conn.execute(
+                "DELETE FROM param_overrides WHERE tourney_id = ?", (tourney_id,)
+            )
+    return {"ok": True, "tourney_id": tourney_id, "strategy": strategy}
 
 
 # ── Dev entry point ───────────────────────────────────────────────────────────
