@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>🏏 Auction Caddy</title>
+<style>
+  :root {
+    --bid: #16a34a; --pass: #dc2626; --warn: #d97706;
+    --bg: #0f172a; --surface: #1e293b; --surface2: #334155;
+    --text: #f1f5f9; --muted: #94a3b8; --border: #475569;
+    --t1: #f59e0b; --t2: #60a5fa; --t3: #a3a3a3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 15px; }
+
+  /* ── layout ── */
+  .page { max-width: 480px; margin: 0 auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+  .card { background: var(--surface); border-radius: 12px; padding: 14px; }
+  .card-title { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 10px; }
+  .row { display: flex; align-items: center; gap: 8px; }
+  .row + .row { margin-top: 6px; }
+
+  /* ── header ── */
+  header { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border-radius: 12px; }
+  header h1 { font-size: 17px; font-weight: 700; flex: 1; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--pass); flex-shrink: 0; }
+  .dot.live { background: var(--bid); box-shadow: 0 0 0 3px #16a34a44; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{ box-shadow: 0 0 0 0 #16a34a66 } 50%{ box-shadow: 0 0 0 6px #16a34a11 } }
+
+  /* ── connect panel ── */
+  input, select {
+    background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 10px; font-size: 14px; width: 100%;
+  }
+  button {
+    background: #3b82f6; color: #fff; border: none; border-radius: 8px;
+    padding: 9px 16px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  button:active { opacity: .8; }
+  button.secondary { background: var(--surface2); color: var(--text); }
+  button.danger { background: #7f1d1d; }
+
+  /* ── verdict banner ── */
+  .verdict {
+    border-radius: 14px; padding: 16px 18px; text-align: center;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .verdict.bid   { background: #14532d; border: 2px solid var(--bid); }
+  .verdict.pass  { background: #450a0a; border: 2px solid var(--pass); }
+  .verdict.wait  { background: var(--surface2); border: 2px solid var(--border); }
+  .verdict-label { font-size: 28px; font-weight: 800; letter-spacing: .04em; }
+  .verdict-sub   { font-size: 13px; color: var(--muted); }
+
+  /* ── player card ── */
+  .player-name { font-size: 20px; font-weight: 700; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+  .t1 { background: #78350f; color: var(--t1); }
+  .t2 { background: #1e3a5f; color: var(--t2); }
+  .t3 { background: #262626; color: var(--t3); }
+  .role-bat  { background: #14532d; color: #4ade80; }
+  .role-bowl { background: #4c0519; color: #fb7185; }
+  .role-ar   { background: #3b0764; color: #c084fc; }
+  .role-wk   { background: #431407; color: #fdba74; }
+  .stat { color: var(--muted); font-size: 13px; }
+  .stat strong { color: var(--text); }
+
+  /* ── bid comparison ── */
+  .bids { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bid-box { background: var(--surface2); border-radius: 10px; padding: 10px 12px; text-align: center; }
+  .bid-box label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 4px; }
+  .bid-box .amount { font-size: 22px; font-weight: 800; }
+  .bid-box.scb .amount { color: #34d399; }
+  .bid-box.arm .amount { color: #60a5fa; }
+  .bid-box.floor .amount { color: var(--muted); }
+
+  /* ── market pill ── */
+  .market-pill { padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+  .market-overbid { background: #450a0a; color: #fca5a5; }
+  .market-buyer   { background: #14532d; color: #86efac; }
+  .market-normal  { background: var(--surface2); color: var(--muted); }
+
+  /* ── roster ── */
+  .roster-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .roster-tag {
+    background: var(--surface2); border-radius: 8px; padding: 4px 10px;
+    font-size: 12px; display: flex; align-items: center; gap: 5px; cursor: pointer;
+  }
+  .roster-tag .remove { color: var(--pass); font-weight: 700; }
+  .roster-add { display: flex; gap: 6px; margin-top: 8px; }
+  .purse-display { font-size: 22px; font-weight: 800; color: #34d399; }
+
+  /* ── recent sales ── */
+  .sale-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .sale-row:last-child { border-bottom: none; }
+  .sale-price { font-weight: 700; }
+  .sale-buyer { font-size: 12px; color: var(--muted); }
+
+  /* ── misc ── */
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: #60a5fa; border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hidden { display: none !important; }
+  .dim { opacity: .4; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Header ── -->
+  <header>
+    <span>🏏</span>
+    <h1>Auction Caddy</h1>
+    <div id="live-dot" class="dot"></div>
+    <span id="live-label" style="font-size:12px;color:var(--muted)">offline</span>
+  </header>
+
+  <!-- ── Connect ── -->
+  <div class="card" id="connect-card">
+    <div class="card-title">Connection</div>
+    <div class="row">
+      <input id="server-url" placeholder="Server URL  e.g. https://rdap-smart-bots.hf.space" value="">
+    </div>
+    <div class="row" style="margin-top:8px">
+      <input id="tourney-id" placeholder="Tourney ID  (from Spring Boot)">
+      <button id="connect-btn" onclick="connect()">Connect</button>
+    </div>
+    <div id="connect-status" style="margin-top:8px;font-size:13px;color:var(--muted)"></div>
+  </div>
+
+  <!-- ── My State ── -->
+  <div class="card" id="my-state-card">
+    <div class="card-title">My State</div>
+    <div class="row">
+      <div style="flex:1">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">REMAINING PURSE</div>
+        <div class="purse-display">₹<span id="my-purse-display">120.0</span>Cr</div>
+      </div>
+      <div style="flex:1;text-align:right">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">SLOTS LEFT</div>
+        <div class="purse-display" id="my-slots-display" style="color:#60a5fa">—</div>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px">MY ROSTER (<span id="roster-count">0</span>)</div>
+      <div class="roster-grid" id="roster-display"></div>
+      <div class="roster-add">
+        <input id="add-player-input" placeholder="Add player I won…" list="pool-datalist" style="flex:1">
+        <datalist id="pool-datalist"></datalist>
+        <input id="add-price-input" placeholder="₹Cr" type="number" step="0.25" min="0" style="width:80px">
+        <button class="secondary" onclick="addToMyRoster()">Add</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <input id="manual-purse-input" placeholder="Override purse ₹Cr" type="number" step="0.5" min="0" style="flex:1;font-size:13px">
+        <button class="secondary" onclick="overridePurse()" style="font-size:13px;padding:7px 12px">Set</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Live Recommendation ── -->
+  <div id="live-card" class="card hidden">
+    <div class="card-title" style="display:flex;justify-content:space-between">
+      <span>Live Recommendation</span>
+      <span id="last-updated" style="font-size:11px;color:var(--muted)"></span>
+    </div>
+
+    <!-- Player info -->
+    <div class="row" style="margin-bottom:10px">
+      <div style="flex:1">
+        <div class="player-name" id="player-name-display">—</div>
+        <div class="row" style="margin-top:4px;gap:6px" id="player-badges"></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:var(--muted)">PROJ PTS</div>
+        <div style="font-size:20px;font-weight:800;color:var(--t1)" id="player-pts">—</div>
+      </div>
+    </div>
+
+    <!-- Verdict -->
+    <div class="verdict wait" id="verdict-box">
+      <div class="verdict-label" id="verdict-label">WAITING…</div>
+      <div class="verdict-sub" id="verdict-sub">Connect to start</div>
+    </div>
+
+    <!-- Bid comparison -->
+    <div class="bids" style="margin-top:10px">
+      <div class="bid-box floor">
+        <label>Floor (current)</label>
+        <div class="amount" id="floor-display">₹0</div>
+      </div>
+      <div class="bid-box scb">
+        <label>⭐ SCB ceiling</label>
+        <div class="amount" id="scb-display">—</div>
+      </div>
+      <div class="bid-box arm">
+        <label>🤖 ARM bot bid</label>
+        <div class="amount" id="arm-display">—</div>
+      </div>
+      <div class="bid-box" style="background:var(--surface2)">
+        <label>My max avail</label>
+        <div class="amount" id="my-max-display" style="color:var(--warn)">—</div>
+      </div>
+    </div>
+
+    <!-- Market mode + priority -->
+    <div class="row" style="margin-top:10px;justify-content:space-between">
+      <div>
+        <span style="font-size:12px;color:var(--muted)">Market: </span>
+        <span class="market-pill market-normal" id="market-pill">—</span>
+      </div>
+      <div class="stat">Priority: <strong id="priority-display">—</strong></div>
+      <div id="scb-loading" class="hidden"><span class="spinner"></span></div>
+    </div>
+  </div>
+
+  <!-- ── Win current player shortcut ── -->
+  <div id="win-card" class="card hidden">
+    <div class="card-title">Quick Update</div>
+    <div class="row">
+      <span style="flex:1;font-size:14px">Won <strong id="quick-player-name">—</strong> for</span>
+      <input id="quick-price-input" type="number" step="0.25" min="0" placeholder="₹Cr" style="width:90px">
+      <button onclick="quickWin()" style="background:var(--bid)">I Won!</button>
+    </div>
+  </div>
+
+  <!-- ── Recent Sales ── -->
+  <div class="card" id="sales-card" style="display:none">
+    <div class="card-title">Recent Sales</div>
+    <div id="recent-sales-list"></div>
+  </div>
+
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const S = {
+  serverUrl: '',
+  tourneyId: '',
+  connected: false,
+  pollTimer: null,
+  lastPlayer: null,
+  myPurse: 120.0,
+  myRoster: [],   // [{name, price}]
+  pool: [],
+};
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fmt = n => '₹' + Number(n).toFixed(2) + 'Cr';
+
+function setStatus(msg, color = 'var(--muted)') {
+  $('connect-status').style.color = color;
+  $('connect-status').textContent = msg;
+}
+
+function setLive(live) {
+  const dot = $('live-dot');
+  const lbl = $('live-label');
+  dot.className = 'dot' + (live ? ' live' : '');
+  lbl.textContent = live ? 'live' : 'offline';
+  S.connected = live;
+}
+
+function mySlots() { return Math.max(0, 16 - S.myRoster.length); }
+function myMandatory() { return Math.max(0, 13 - S.myRoster.length); }
+function myAvail() { return Math.max(0, S.myPurse - Math.max(0, myMandatory() - 1)); }
+
+function renderMyState() {
+  $('my-purse-display').textContent = S.myPurse.toFixed(1);
+  $('my-slots-display').textContent = mySlots();
+  $('roster-count').textContent = S.myRoster.length;
+  const grid = $('roster-display');
+  grid.innerHTML = '';
+  S.myRoster.forEach((entry, i) => {
+    const tag = document.createElement('div');
+    tag.className = 'roster-tag';
+    tag.innerHTML = `<span>${entry.name} <span style="color:var(--muted);font-size:11px">₹${entry.price}Cr</span></span>
+      <span class="remove" onclick="removeFromRoster(${i})">✕</span>`;
+    grid.appendChild(tag);
+  });
+}
+
+function addToMyRoster() {
+  const name = $('add-player-input').value.trim();
+  const price = parseFloat($('add-price-input').value) || 0;
+  if (!name) return;
+  S.myRoster.push({ name, price });
+  S.myPurse = Math.max(0, S.myPurse - price);
+  $('add-player-input').value = '';
+  $('add-price-input').value = '';
+  renderMyState();
+}
+
+function removeFromRoster(i) {
+  const removed = S.myRoster.splice(i, 1)[0];
+  S.myPurse += removed.price;
+  renderMyState();
+}
+
+function overridePurse() {
+  const v = parseFloat($('manual-purse-input').value);
+  if (!isNaN(v)) { S.myPurse = v; renderMyState(); }
+  $('manual-purse-input').value = '';
+}
+
+function quickWin() {
+  const price = parseFloat($('quick-price-input').value);
+  if (!S.lastPlayer || isNaN(price)) return;
+  S.myRoster.push({ name: S.lastPlayer, price });
+  S.myPurse = Math.max(0, S.myPurse - price);
+  $('quick-price-input').value = '';
+  renderMyState();
+}
+
+// ── Pool loading (for autocomplete) ───────────────────────────────────────
+async function loadPool() {
+  try {
+    const r = await fetch(`${S.serverUrl}/api/pool`);
+    const d = await r.json();
+    S.pool = d.pool || [];
+    const dl = $('pool-datalist');
+    dl.innerHTML = '';
+    S.pool.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.auction_name || p.player_name;
+      dl.appendChild(opt);
+    });
+  } catch (_) {}
+}
+
+// ── Connection ─────────────────────────────────────────────────────────────
+async function connect() {
+  S.serverUrl = $('server-url').value.trim().replace(/\/$/, '');
+  S.tourneyId = $('tourney-id').value.trim();
+  if (!S.serverUrl || !S.tourneyId) { setStatus('Enter server URL and tourney ID.', 'var(--pass)'); return; }
+
+  setStatus('Connecting…');
+  try {
+    const r = await fetch(`${S.serverUrl}/api/health`);
+    if (!r.ok) throw new Error(r.status);
+    setStatus(`Connected to ${S.serverUrl}`, '#4ade80');
+    setLive(true);
+    $('connect-btn').textContent = 'Reconnect';
+    $('live-card').classList.remove('hidden');
+    $('win-card').classList.remove('hidden');
+    await loadPool();
+    startPolling();
+  } catch (e) {
+    setStatus(`Failed: ${e.message}`, 'var(--pass)');
+    setLive(false);
+  }
+}
+
+// ── Polling ────────────────────────────────────────────────────────────────
+function startPolling() {
+  if (S.pollTimer) clearInterval(S.pollTimer);
+  poll();
+  S.pollTimer = setInterval(poll, 2000);
+}
+
+async function poll() {
+  if (!S.connected) return;
+  try {
+    const r = await fetch(`${S.serverUrl}/api/session/${encodeURIComponent(S.tourneyId)}/live`);
+    if (!r.ok) { setLive(false); return; }
+    const d = await r.json();
+    if (!d.has_update) return;
+    updateLiveCard(d);
+    updateSales(d.recent_sales || []);
+    setLive(true);
+  } catch (_) {
+    setLive(false);
+  }
+}
+
+// ── Live card update ───────────────────────────────────────────────────────
+async function updateLiveCard(d) {
+  const p = d.player || {};
+  const playerName = p.auction_name || p.player_name || d.current_player;
+  const isNew = playerName !== S.lastPlayer;
+  S.lastPlayer = playerName;
+
+  $('player-name-display').textContent = playerName;
+  $('player-pts').textContent = p.projected_points ? p.projected_points.toFixed(1) + 'pts' : '—';
+  $('floor-display').textContent = fmt(d.current_bid || 0);
+  $('arm-display').textContent = d.arm_bid != null ? fmt(d.arm_bid) : '—';
+  $('my-max-display').textContent = fmt(myAvail());
+  $('last-updated').textContent = new Date().toLocaleTimeString();
+  $('quick-player-name').textContent = playerName;
+  $('quick-price-input').value = '';
+
+  // Badges
+  const badges = $('player-badges');
+  const tier = p.tier || 3;
+  const role = (p.role || 'BAT').toUpperCase();
+  const roleClass = { BAT: 'role-bat', BOWL: 'role-bowl', AR: 'role-ar', WK: 'role-wk' }[role] || 'role-bat';
+  badges.innerHTML = `<span class="badge t${tier}">T${tier}</span>
+    <span class="badge ${roleClass}">${role}</span>
+    ${p.ipl_team ? `<span style="font-size:12px;color:var(--muted)">${p.ipl_team}</span>` : ''}`;
+
+  // Market pill
+  const mode = d.market_mode || 'normal';
+  const pill = $('market-pill');
+  pill.textContent = mode;
+  pill.className = `market-pill market-${mode}`;
+
+  // Priority
+  $('priority-display').textContent = d.priority != null ? d.priority.toFixed(2) : '—';
+
+  if (isNew) {
+    $('scb-display').textContent = '…';
+    $('verdict-label').textContent = 'LOADING…';
+    $('verdict-box').className = 'verdict wait';
+    $('scb-loading').classList.remove('hidden');
+    await fetchSCBAdvice(d);
+    $('scb-loading').classList.add('hidden');
+  }
+}
+
+async function fetchSCBAdvice(liveData) {
+  const myRosterNames = S.myRoster.map(e => e.name);
+  const body = {
+    player_name:  liveData.current_player,
+    current_bid:  liveData.current_bid || 0,
+    my_purse:     S.myPurse,
+    my_roster:    myRosterNames,
+    opponents:    liveData.opponents || [],
+    strategy:     'SquadCompletionBidder',
+    evolved:      liveData.evolved !== false,
+    tourney_id:   S.tourneyId,
+    field_size:   liveData.field_size || 8,
+  };
+
+  try {
+    const r = await fetch(`${S.serverUrl}/api/advice`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) {
+      $('scb-display').textContent = 'ERR';
+      setVerdict('wait', 'ERROR', r.status);
+      return;
+    }
+    const d = await r.json();
+    const scbBid = d.recommended_bid;
+    const floor  = parseFloat($('floor-display').textContent.replace(/[₹Cr]/g, '')) || 0;
+
+    $('scb-display').textContent = fmt(scbBid);
+    $('my-max-display').textContent = fmt(myAvail());
+
+    if (scbBid <= floor) {
+      setVerdict('pass', 'PASS', `SCB ceiling ${fmt(scbBid)} ≤ floor ${fmt(floor)}`);
+    } else if (scbBid > myAvail()) {
+      setVerdict('pass', 'PASS — OVER BUDGET', `Need ${fmt(scbBid)} but max avail ${fmt(myAvail())}`);
+    } else {
+      const headroom = (scbBid - floor).toFixed(2);
+      setVerdict('bid', `BID UP TO ${fmt(scbBid)}`, `+₹${headroom}Cr headroom above floor`);
+    }
+  } catch (e) {
+    $('scb-display').textContent = '—';
+    setVerdict('wait', 'ERR', e.message);
+  }
+}
+
+function setVerdict(type, label, sub) {
+  const box = $('verdict-box');
+  box.className = `verdict ${type}`;
+  $('verdict-label').textContent = label;
+  $('verdict-sub').textContent = sub || '';
+}
+
+// ── Recent sales ───────────────────────────────────────────────────────────
+function updateSales(sales) {
+  if (!sales.length) return;
+  $('sales-card').style.display = '';
+  const list = $('recent-sales-list');
+  list.innerHTML = '';
+  sales.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'sale-row';
+    const tier = s.tier || 3;
+    row.innerHTML = `
+      <div>
+        <span class="badge t${tier}" style="margin-right:5px">T${tier}</span>
+        <span>${s.player}</span>
+      </div>
+      <div style="text-align:right">
+        <div class="sale-price">${fmt(s.price)}</div>
+        <div class="sale-buyer">${s.buyer}</div>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+renderMyState();
+
+// Pre-fill server URL if opened from the HF Space
+if (window.location.hostname.includes('hf.space')) {
+  $('server-url').value = window.location.origin;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Virtual environment
+.venv/
+
+# Runtime / generated files
+advisor.db
+advisor.log
+*.log
+coevolve_log.txt
+
+# Large data / notebooks
+*.ipynb
+params_history/
+
+# macOS
+.DS_Store
