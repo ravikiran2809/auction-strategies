@@ -199,12 +199,28 @@ def _calculate_vorp(
 
 
 # ── Base scorer: raw stats → scored match log ────────────────────────────────
-def _load_and_score(csv_path: Path, rules_path: Path) -> pl.DataFrame:
-    df = pl.read_csv(csv_path, infer_schema_length=5000)
-    # Ensure ipl_year is a string for consistent filtering
-    if df["ipl_year"].dtype != pl.Utf8:
-        df = df.with_columns(pl.col("ipl_year").cast(pl.Utf8))
-    return score_matches(df, rules_path)
+def _load_and_score(
+    csv_path: Path,
+    rules_path: Path,
+    extra_csv_paths: list[Path] | None = None,
+) -> pl.DataFrame:
+    """Load one or more CSV files, concatenate, then score.
+
+    extra_csv_paths: additional season CSV files to merge (e.g. 2026 partial season).
+    All CSVs must have the same schema as ipl_player_stats.csv.
+    """
+    def _read_csv(p: Path) -> pl.DataFrame:
+        df = pl.read_csv(p, infer_schema_length=5000)
+        if df["ipl_year"].dtype != pl.Utf8:
+            df = df.with_columns(pl.col("ipl_year").cast(pl.Utf8))
+        return df
+
+    frames = [_read_csv(csv_path)]
+    for ep in (extra_csv_paths or []):
+        frames.append(_read_csv(ep))
+
+    combined = pl.concat(frames) if len(frames) > 1 else frames[0]
+    return score_matches(combined, rules_path)
 
 
 # ── Projection Models ────────────────────────────────────────────────────────
@@ -306,6 +322,184 @@ class RecentFormModel(ProjectionModel):
             .with_columns(pl.col("std_dev").fill_null(30.0))
         )
         return recent
+
+
+class NormalisedSeasonModel(ProjectionModel):
+    """
+    Combines multiple seasons with per-season normalisation for incomplete seasons.
+
+    For incomplete seasons (e.g. 2026 mid-season) two adjustments are applied:
+
+    1. Season-level scale: avg_pts are projected to full-season equivalent via
+       full_season_matches / max_team_matches_in_season (capped at 2×).
+
+    2. Player-level Bayesian shrinkage: players with few matches in the incomplete
+       season are pulled toward the season's role-mean before scaling.
+
+         shrunk_avg = (n * raw_avg + k * role_mean) / (n + k)
+
+       where n = player match count, k = shrinkage_k (default 4).
+       A player with n=1 match: weight 1/(1+4)=20% own data, 80% role mean.
+       A player with n=6 matches: weight 6/10=60% own data.
+       A player with n≥14 matches: nearly unaffected (>77% own data).
+
+    This prevents single-match blowout scores (e.g. Dewald Brewis scoring 80pts
+    in his only 2026 game) from projecting as elite full-season performers.
+
+    Args:
+        season_weights:      {year: weight}  — relative importance per season.
+        full_season_matches: Expected total matches in a complete season (default 74
+                             for IPL — 10 teams × 14 home/away + 4 playoffs).
+        incomplete_seasons:  Set of years to treat as incomplete (normalised).
+                             If None, a season is auto-detected as incomplete if
+                             max team match count < 0.8 × full_season_matches.
+        shrinkage_k:         Bayesian shrinkage constant for incomplete seasons.
+                             Higher = more regression to mean for sparse players.
+        min_incomplete_matches: Players with fewer matches than this in an incomplete
+                             season are excluded from that season's projection and
+                             fall back to prior seasons only.
+    """
+
+    def __init__(
+        self,
+        season_weights: dict[str, float],
+        full_season_matches: int = 74,
+        incomplete_seasons: set[str] | None = None,
+        shrinkage_k: int = 4,
+        min_incomplete_matches: int = 2,
+    ):
+        self.season_weights = season_weights
+        self.full_season_matches = full_season_matches
+        self.incomplete_seasons = incomplete_seasons
+        self.shrinkage_k = shrinkage_k
+        self.min_incomplete_matches = min_incomplete_matches
+
+    def project(self, scored_df: pl.DataFrame) -> pl.DataFrame:
+        seasons = list(self.season_weights.keys())
+        df = scored_df.filter(pl.col("ipl_year").is_in(seasons))
+
+        # Compute max team match count per season (proxy: max individual match count)
+        season_max_matches = (
+            df.group_by(["ipl_year", "player_name"])
+            .agg(pl.col("match_id").n_unique().alias("player_matches"))
+            .group_by("ipl_year")
+            .agg(pl.col("player_matches").max().alias("max_matches"))
+        )
+        max_matches_map: dict[str, int] = {
+            row["ipl_year"]: row["max_matches"]
+            for row in season_max_matches.to_dicts()
+        }
+
+        # Compute role membership per player for shrinkage (role from full history)
+        role_df = _classify_roles_df(
+            scored_df.group_by("player_name")
+            .agg([
+                pl.col("runs_scored").sum().alias("total_runs"),
+                pl.col("wickets").sum().alias("total_wkts"),
+                pl.col("balls_bowled").sum().alias("total_balls_bowled"),
+                pl.col("catches_caught").sum().alias("total_catches"),
+            ])
+            .with_columns([
+                pl.lit(0.0).alias("projected_points"),
+                pl.lit(0.0).alias("std_dev"),
+                pl.lit(0).alias("matches_played"),
+            ])
+        ).select(["player_name", "role"])
+        role_map: dict[str, str] = {r["player_name"]: r["role"] for r in role_df.to_dicts()}
+
+        season_agg = (
+            df.group_by(["ipl_year", "player_name"])
+            .agg(
+                [
+                    pl.col("match_id").n_unique().alias("matches_in_season"),
+                    pl.col("match_fantasy_points").mean().alias("avg_pts"),
+                    pl.col("match_fantasy_points").std().alias("std_pts"),
+                    pl.col("runs_scored").sum().alias("total_runs"),
+                    pl.col("wickets").sum().alias("total_wkts"),
+                    pl.col("catches_caught").sum().alias("total_catches"),
+                    pl.col("balls_bowled").sum().alias("total_balls_bowled"),
+                ]
+            )
+            .with_columns(
+                pl.col("ipl_year")
+                .map_elements(lambda y: self.season_weights.get(y, 0.0), return_dtype=pl.Float64)
+                .alias("weight")
+            )
+        )
+
+        # Compute role-mean avg_pts per season (used as shrinkage prior)
+        # Map roles onto the season_agg rows
+        season_agg = season_agg.with_columns(
+            pl.col("player_name")
+            .map_elements(lambda n: role_map.get(n, "BAT"), return_dtype=pl.String)
+            .alias("role")
+        )
+        role_season_means: dict[tuple[str, str], float] = {}
+        for row in (
+            season_agg.group_by(["ipl_year", "role"])
+            .agg(pl.col("avg_pts").mean().alias("role_mean"))
+            .to_dicts()
+        ):
+            role_season_means[(row["ipl_year"], row["role"])] = row["role_mean"]
+
+        def _is_incomplete(yr: str) -> bool:
+            if self.incomplete_seasons is not None:
+                return yr in self.incomplete_seasons
+            return max_matches_map.get(yr, self.full_season_matches) < self.full_season_matches * 0.8
+
+        def _normalise_avg(row: dict) -> float:
+            yr = row["ipl_year"]
+            avg = row["avg_pts"]
+            n = row["matches_in_season"]
+            role = row.get("role", "BAT")
+
+            if not _is_incomplete(yr):
+                return avg
+
+            # Drop players below minimum match threshold for this incomplete season
+            if n < self.min_incomplete_matches:
+                return float("nan")  # will be filtered out below
+
+            # Bayesian shrinkage toward role mean
+            role_mean = role_season_means.get((yr, role), avg)
+            k = self.shrinkage_k
+            shrunk = (n * avg + k * role_mean) / (n + k)
+
+            # Scale to full-season equivalent (cap at 2×)
+            max_m = max_matches_map.get(yr, self.full_season_matches)
+            if max_m > 0:
+                scale = min(self.full_season_matches / max_m, 2.0)
+                return shrunk * scale
+            return shrunk
+
+        season_agg = season_agg.with_columns(
+            pl.struct(["ipl_year", "avg_pts", "matches_in_season", "role"])
+            .map_elements(_normalise_avg, return_dtype=pl.Float64)
+            .alias("avg_pts_norm")
+        )
+
+        # Drop rows where normalisation returned NaN (below min_incomplete_matches)
+        season_agg = season_agg.filter(pl.col("avg_pts_norm").is_not_nan())
+
+        weighted = (
+            season_agg.group_by("player_name")
+            .agg(
+                [
+                    (
+                        (pl.col("avg_pts_norm") * pl.col("weight")).sum()
+                        / pl.col("weight").sum()
+                    ).alias("projected_points"),
+                    pl.col("std_pts").mean().alias("std_dev"),
+                    pl.col("matches_in_season").sum().alias("matches_played"),
+                    pl.col("total_runs").sum().alias("total_runs"),
+                    pl.col("total_wkts").sum().alias("total_wkts"),
+                    pl.col("total_catches").sum().alias("total_catches"),
+                    pl.col("total_balls_bowled").sum().alias("total_balls_bowled"),
+                ]
+            )
+            .with_columns(pl.col("std_dev").fill_null(30.0))
+        )
+        return weighted
 
 
 class CustomFunctionModel(ProjectionModel):
@@ -426,6 +620,7 @@ def build_pool(
     csv_path: str | Path | None = None,
     model: ProjectionModel | None = None,
     *,
+    extra_csv_paths: list[str | Path] | None = None,
     min_matches: int = 5,
     pool_size: int = 200,
     num_teams: int = 6,
@@ -435,12 +630,17 @@ def build_pool(
     overrides_path: str | Path | None = None,
 ) -> list[dict]:
     """
-    Full pipeline: CSV → score → project → classify roles → VORP → tier → pool.
+    Full pipeline: CSV -> score -> project -> classify roles -> VORP -> tier -> pool.
     Returns list of player dicts sorted by projected_points descending.
+
+    extra_csv_paths: optional list of additional season CSV files (e.g. 2026 partial).
+                     All files must share the same schema as the primary csv_path.
+                     Use NormalisedSeasonModel to handle partial seasons correctly.
     """
     csv_path = Path(csv_path) if csv_path else _DEFAULT_CSV
     rules_path = Path(rules_path) if rules_path else _DEFAULT_RULES
     role_requirements = role_requirements or {"BAT": 5, "BOWL": 4, "AR": 2, "WK": 2}
+    extra_paths = [Path(p) for p in (extra_csv_paths or [])]
 
     if model is None:
         # 2025 only for projected_points — avoids diluting current form with stale data.
@@ -448,7 +648,7 @@ def build_pool(
         model = WeightedSeasonModel({"2025": 1.0})
 
     # 1. Load + score match log (all years — needed for cross-season consistency)
-    scored = _load_and_score(csv_path, rules_path)
+    scored = _load_and_score(csv_path, rules_path, extra_paths)
 
     # 2. Project → aggregated player stats (2025 data only by default)
     agg = model.project(scored)

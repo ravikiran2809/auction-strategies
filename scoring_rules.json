@@ -16,7 +16,7 @@
 
 {"stat":"RUNS","type":"RANGE","min":150,"max":null,"points":150,"condition":{"stat":"BALLS_FACED","min":10}},
 
-{"stat":"RUNS","type":"MILESTONE","threshold":0,"points":-10,"exact":true},
+{"stat":"RUNS","type":"MILESTONE","threshold":0,"points":-10,"exact":true,"role_condition":{"exclude":["BOWL"]}},
 
 {"stat":"STRIKE_RATE","type":"RANGE","min":125,"max":150,"points":10,"condition":{"stat":"BALLS_FACED","min":10}},
 
@@ -42,12 +42,20 @@
 
 {"stat":"ECONOMY","type":"RANGE","min":6,"max":8,"points":15,"condition":{"stat":"BALLS_BOWLED","min":12}},
 
-{"stat":"ECONOMY","type":"RANGE","min":10,"max":12,"points":-10,"condition":{"stat":"BALLS_BOWLED","min":12}},
+{"stat":"ECONOMY","type":"RANGE","min":10,"max":12,"points":-10,"condition":{"stat":"BALLS_BOWLED","min":12},"role_condition":{"include":["BOWL","AR"]}},
 
-{"stat":"ECONOMY","type":"RANGE","min":12,"max":null,"points":-20,"condition":{"stat":"BALLS_BOWLED","min":12}},
+{"stat":"ECONOMY","type":"RANGE","min":12,"max":null,"points":-20,"condition":{"stat":"BALLS_BOWLED","min":12},"role_condition":{"include":["BOWL","AR"]}},
 
 {"stat":"CATCHES","type":"PER_UNIT","points":10},
 
-{"stat":"RUNOUTS","type":"PER_UNIT","points":20}
+{"stat":"RUNOUTS","type":"PER_UNIT","points":20},
+
+{"stat":"STUMPINGS","type":"PER_UNIT","points":20},
+
+{"stat":"DOT_BALLS","type":"PER_UNIT","points":1},
+
+{"stat":"WIDES_BOWLED","type":"PER_UNIT","points":-1},
+
+{"stat":"NO_BALLS_BOWLED","type":"PER_UNIT","points":-1}
 
 ]

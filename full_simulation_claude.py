@@ -104,6 +104,7 @@ def load_player_pool() -> list[dict]:
 def _calc_fp(row) -> float:
     runs, balls = row["runs_scored"], row["balls_faced"]
     wkts, bowl = row["wickets"], row["balls_bowled"]
+    role = row.get("role", "")
     overs = bowl / 6 if bowl > 0 else 0
     eco = row["runs_given"] / overs if overs > 0 else 0
     sr = (runs / balls * 100) if balls > 0 else 0
@@ -113,11 +114,16 @@ def _calc_fp(row) -> float:
         + row["six_count"] * 2
         + row["catches_caught"] * 10
         + row["runouts"] * 20
+        + row.get("stumpings", 0) * 20
         + wkts * 40
         + row["bowled_lbw_wickets"] * 10
         + row["maiden_count"] * 50
+        + row.get("dot_ball_count", 0) * 1
+        + row.get("wides_bowled", 0) * (-1)
+        + row.get("no_balls_bowled", 0) * (-1)
     )
-    if runs == 0 and row["is_out"] == 1:
+    # Duck penalty: only for BAT, AR, WK — not pure bowlers
+    if runs == 0 and row["is_out"] == 1 and role != "BOWL":
         pts -= 10
     if balls >= 10:
         if runs >= 150:
@@ -142,7 +148,8 @@ def _calc_fp(row) -> float:
         pts += 150
     elif wkts >= 3:
         pts += 50
-    if bowl >= 12:
+    # Economy penalties: only for BOWL and AR
+    if bowl >= 12 and role in ("BOWL", "AR"):
         if eco < 4:
             pts += 50
         elif eco < 6:
@@ -153,6 +160,14 @@ def _calc_fp(row) -> float:
             pts -= 10
         elif eco >= 12:
             pts -= 20
+    elif bowl >= 12 and role not in ("BOWL", "AR"):
+        # BAT/WK still get economy bonuses, just not penalties
+        if eco < 4:
+            pts += 50
+        elif eco < 6:
+            pts += 35
+        elif eco < 8:
+            pts += 15
     return pts
 
 

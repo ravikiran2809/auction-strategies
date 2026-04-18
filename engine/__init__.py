@@ -6,6 +6,7 @@ Unified engine package. Import order:
 """
 from .scoring import score_matches, aggregate_season
 from .pool import build_pool, WeightedSeasonModel, RecentFormModel, CustomFunctionModel
+from .intel import load_intel, intel_mult, IntelRegistry, PlayerIntel
 from .overrides import load_overrides, apply_overrides
 from .strategies import STRATEGY_REGISTRY, Manager
 from .auction import run_auction, build_state
@@ -15,6 +16,7 @@ from .export import export_pool, export_insights
 __all__ = [
     "score_matches", "aggregate_season",
     "build_pool", "WeightedSeasonModel", "RecentFormModel", "CustomFunctionModel",
+    "load_intel", "intel_mult", "IntelRegistry", "PlayerIntel",
     "load_overrides", "apply_overrides",
     "STRATEGY_REGISTRY", "Manager",
     "run_auction", "build_state",

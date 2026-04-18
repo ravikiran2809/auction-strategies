@@ -16,6 +16,10 @@ STAT_COL_MAP = {
     "BALLS_BOWLED": "balls_bowled",
     "CATCHES": "catches_caught",
     "RUNOUTS": "runouts",
+    "STUMPINGS": "stumpings",
+    "DOT_BALLS": "dot_ball_count",
+    "WIDES_BOWLED": "wides_bowled",
+    "NO_BALLS_BOWLED": "no_balls_bowled",
 }
 
 
@@ -50,6 +54,11 @@ def calculate_match_points(df: pl.DataFrame, rules: list) -> pl.DataFrame:
         ]
     )
 
+    # Ensure new columns exist with zero default for older CSV rows
+    for col in ("stumpings", "dot_ball_count", "wides_bowled", "no_balls_bowled"):
+        if col not in df.columns:
+            df = df.with_columns(pl.lit(0).alias(col))
+
     # 2. Compile JSON rules into a list of Polars expressions
     point_exprs = []
 
@@ -70,6 +79,14 @@ def calculate_match_points(df: pl.DataFrame, rules: list) -> pl.DataFrame:
                 base_cond = base_cond & (pl.col(cond_col) >= cond["min"])
             if "max" in cond and cond["max"] is not None:
                 base_cond = base_cond & (pl.col(cond_col) < cond["max"])
+
+        # Apply role-based conditions (requires a 'role' column in the DataFrame)
+        if "role_condition" in rule and "role" in df.columns:
+            rc = rule["role_condition"]
+            if "include" in rc:
+                base_cond = base_cond & pl.col("role").is_in(rc["include"])
+            if "exclude" in rc:
+                base_cond = base_cond & pl.col("role").is_in(rc["exclude"]).not_()
 
         rule_type = rule["type"]
         rule_pts = rule["points"]

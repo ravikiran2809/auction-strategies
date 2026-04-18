@@ -152,8 +152,10 @@ class SquadBuilder:
              → float  expected season_score if we greedily fill remaining slots
     """
 
-    # Role slot requirements used for completion scoring
-    ROLE_MIN = {"BAT": 4, "BOWL": 4, "AR": 2, "WK": 2}
+    # Role slot requirements used for completion scoring.
+    # Real fantasy rules: minimum 1 of each type.
+    # Higher minimums inflated role_need and distorted target_priority_score.
+    ROLE_MIN = {"BAT": 1, "BOWL": 1, "AR": 1, "WK": 1}
     QUALITY_THRESHOLD = 55.0   # minimum pts to count as a "real" contribution
 
     # ── Target priority ───────────────────────────────────────────────────────

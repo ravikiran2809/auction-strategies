@@ -6,6 +6,7 @@ Plan-Track-Adapt (PTA) strategies — fully decoupled from existing strategies.
 Imports only:
   - engine.strategies.Manager, StrategyParams  (base classes)
   - engine.market.MarketAnalyzer, SquadBuilder  (new infrastructure)
+  - engine.intel.intel_mult                     (opt-in market intelligence)
 
 New strategies:
   SquadCompletionBidder   — bids based on target priority score
@@ -13,6 +14,12 @@ New strategies:
 
 Both are registered into STRATEGY_REGISTRY at import time via
   `register_pta_strategies()` — called from engine/__init__.py or main.py
+
+Market intelligence (engine/intel.py)
+--------------------------------------
+Both PTA strategies apply intel_mult() as a final WTP multiplier.  When no
+intel file has been loaded (e.g. during simulation) the multiplier is always
+1.0 and has zero effect.  Load intel once on startup via load_intel().
 """
 
 from __future__ import annotations
@@ -21,6 +28,7 @@ import math
 from dataclasses import dataclass, field, fields, asdict
 from typing import Optional
 
+from .intel import intel_mult
 from .strategies import Manager, StrategyParams, STRATEGY_REGISTRY
 from .market import MarketAnalyzer, SquadBuilder
 
@@ -160,6 +168,11 @@ class SquadCompletionBidderParams(StrategyParams):
     denial_pressure_threshold: float = 0.55  # opp pressure above which denial activates
     denial_boost: float              = 1.35  # WTP multiplier when denying a pressured opp
     new_team_premium: float    = 1.0
+    # Marquee recovery: if we keep losing T1 players, boost WTP on remaining T1/T2 lots.
+    # Seed from past auction T1 pay ratios: 75th-pct human premium × 0.9 ≈ 0.674 × 0.9.
+    # Calibrated via grid search in `python main.py simulate --marquee-pressure F`.
+    marquee_recovery_mult: float = 1.4  # WTP boost on remaining T1 after losing lost_t1_trigger
+    lost_t1_trigger: int         = 1   # enter marquee recovery after losing this many T1s
 
     def get_bounds(self):
         return [
@@ -179,6 +192,8 @@ class SquadCompletionBidderParams(StrategyParams):
             (0.30, 0.85), # denial_pressure_threshold
             (1.0,  2.00), # denial_boost
             (0.8, 2.0),   # new_team_premium
+            (1.0,  2.5),  # marquee_recovery_mult
+            (1,    3),    # lost_t1_trigger (treated as float, rounded at use time)
         ]
 
 
@@ -193,6 +208,20 @@ class SquadCompletionBidder(PTAManager):
     """
 
     params: SquadCompletionBidderParams
+    _lost_t1_count: int = field(init=False, default=0)
+
+    def __post_init__(self):
+        super().__post_init__()
+        self._lost_t1_count = 0
+
+    def reset(self):
+        super().reset()
+        self._lost_t1_count = 0
+
+    def on_sale(self, player: dict, price: float, buyer: str, cr_per_vorp: float) -> None:
+        super().on_sale(player, price, buyer, cr_per_vorp)
+        if buyer != self.name and player.get("tier") == 1:
+            self._lost_t1_count += 1
 
     def _opp_wtp_max(self, player: dict, state: dict) -> float:
         """Estimate the highest WTP any opponent is likely to have for this player.
@@ -276,6 +305,18 @@ class SquadCompletionBidder(PTAManager):
         elif mode == "buyer":
             wtp *= p.buyer_boost
 
+        # Marquee recovery: if we've lost enough T1 players, boost WTP on remaining T1/T2.
+        # This compensates for human opponents bidding far above fair value on marquee lots.
+        if (player.get("tier", 3) <= 2
+                and self._lost_t1_count >= int(round(p.lost_t1_trigger))):
+            wtp *= p.marquee_recovery_mult
+
+        # Market intelligence: injury / form adjustment (no-op if intel not loaded).
+        im = intel_mult(player["player_name"])
+        if im == 0.0:
+            return player.get("base_price", 0.5)  # injured/unavailable — token bid only
+        wtp *= im
+
         return self._desperation(wtp, state, rnd)
 
 
@@ -297,6 +338,10 @@ class AdaptiveRecoveryManagerParams(StrategyParams):
     # Budget pre-allocation
     t1_budget_fraction: float  = 0.45   # fraction of purse pre-allocated to T1 targets
     new_team_premium: float    = 1.0
+    # Marquee recovery: boost WTP on T1/T2 lots after losing too many marquee players.
+    # Seed: 75th-pct human T1 pay ratio (0.674) × 0.9; calibrate via --marquee-pressure.
+    marquee_recovery_mult: float = 1.4
+    lost_t1_trigger: int         = 1
 
     def get_bounds(self):
         return [
@@ -309,6 +354,8 @@ class AdaptiveRecoveryManagerParams(StrategyParams):
             (0.3, 0.65),  # min_priority
             (0.30, 0.65), # t1_budget_fraction
             (0.8, 2.0),   # new_team_premium
+            (1.0, 2.5),   # marquee_recovery_mult
+            (1,   3),     # lost_t1_trigger (treated as float, rounded at use time)
         ]
 
 
@@ -333,6 +380,7 @@ class AdaptiveRecoveryManager(PTAManager):
     # Per-auction instance state
     _lost_targets: list[dict] = field(init=False, default_factory=list)
     _lost_pts_gap: float = field(init=False, default=0.0)
+    _lost_t1_count: int = field(init=False, default=0)
     _substitute_target: Optional[str] = field(init=False, default=None)
     _t1_seen: int = field(init=False, default=0)
     _t1_remaining_est: int = field(init=False, default=20)
@@ -341,6 +389,7 @@ class AdaptiveRecoveryManager(PTAManager):
         super().__post_init__()
         self._lost_targets = []
         self._lost_pts_gap = 0.0
+        self._lost_t1_count = 0
         self._substitute_target = None
         self._t1_seen = 0
         self._t1_remaining_est = 20
@@ -349,6 +398,7 @@ class AdaptiveRecoveryManager(PTAManager):
         super().reset()
         self._lost_targets = []
         self._lost_pts_gap = 0.0
+        self._lost_t1_count = 0
         self._substitute_target = None
         self._t1_seen = 0
         self._t1_remaining_est = 20
@@ -371,6 +421,8 @@ class AdaptiveRecoveryManager(PTAManager):
                 self._lost_pts_gap += pts * 0.20  # marginal loss estimate
                 if self._substitute_target is None:
                     self._substitute_target = None  # will resolve on next WTP call
+        if buyer != self.name and player.get("tier") == 1:
+            self._lost_t1_count += 1
 
     # ── Core bidding ──────────────────────────────────────────────────────────
     def willingness_to_pay(self, player: dict, state: dict, rnd: int) -> float:
@@ -466,7 +518,20 @@ class AdaptiveRecoveryManager(PTAManager):
         else:
             market_adj = 1.0
 
-        return self._desperation(raw_wtp * mult * market_adj * budget_deployment, state, rnd)
+        wtp = raw_wtp * mult * market_adj * budget_deployment
+
+        # Marquee recovery: if we've lost enough T1 players, boost WTP on remaining T1/T2.
+        if (player.get("tier", 3) <= 2
+                and self._lost_t1_count >= int(round(p.lost_t1_trigger))):
+            wtp *= p.marquee_recovery_mult
+
+        # Market intelligence: injury / form adjustment (no-op if intel not loaded).
+        im = intel_mult(player["player_name"])
+        if im == 0.0:
+            return player.get("base_price", 0.5)  # injured/unavailable — token bid only
+        wtp *= im
+
+        return self._desperation(wtp, state, rnd)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

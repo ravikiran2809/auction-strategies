@@ -159,6 +159,15 @@ class Manager:
             wtp *= 1.0 + (scarcity * 3) ** 2
         if rnd > 1 and self.mandatory > 0:
             wtp = max(wtp, self.purse / max(1, self.slots))
+
+        # Urgency scaling: if carrying significantly more budget per slot than
+        # starting pace (e.g. missed too many T3 fillers), boost WTP proportionally
+        # to deploy surplus.  Caps at 2× to avoid panic overbidding.
+        starting_pace = self.total_purse / self.max_roster
+        if self.slots > 0 and self.cash_per_slot > starting_pace * 1.3:
+            urgency_boost = min(2.0, self.cash_per_slot / starting_pace)
+            wtp = max(wtp, wtp * urgency_boost)
+
         return min(wtp, self.max_bid)
 
     def _alt_mean(self, player: dict, state: dict) -> float:
@@ -174,9 +183,19 @@ class Manager:
         raise NotImplementedError
 
     def bid(self, player: dict, state: dict, rnd: int) -> float:
-        """Called by auction.py. Applies team diversity premium on top of WTP."""
+        """Called by auction.py. Applies team diversity premium and floor bid minimum."""
         wtp = self.willingness_to_pay(player, state, rnd)
-        return self._apply_team_premium(wtp, player)
+        wtp = self._apply_team_premium(wtp, player)
+
+        # Floor bid minimum: always willing to pay at least 1.5× base_price so
+        # strategies with budget surplus don't pass on cheap T3 fillers entirely.
+        # Only enforces when we have budget headroom (not in desperation with mandatory).
+        if self.slots > 0 and self.mandatory == 0:
+            floor = player.get("base_price", 1.0) * 1.5
+            if self.cash_per_slot > self.total_purse / self.max_roster * 1.3:
+                wtp = max(wtp, floor)
+
+        return wtp
 
     def _apply_team_premium(self, wtp: float, player: dict) -> float:
         """Boosts WTP for new teams; discounts 3rd+ player from same franchise."""

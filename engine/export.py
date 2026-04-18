@@ -76,6 +76,8 @@ def export_insights(
             "participations":        r.participations,
             "total_auctions":        r.total_auctions,
             "budget_utilization":    round(r.budget_utilization, 3),
+            "avg_teams":             r.avg_teams,
+            "avg_max_same_team":     r.avg_max_same_team,
         }
 
     payload = {

@@ -326,35 +326,161 @@
   },
   "SquadCompletionBidder": {
     "evolved": {
-      "must_bid_mult": 1.2096754714031903,
-      "useful_mult": 1.0127567691911072,
-      "floor_mult": 0.1966988423580069,
-      "must_bid_threshold": 0.9107477440912384,
-      "useful_threshold": 0.674031544756392,
-      "overbid_dampen": 0.8883413197407828,
-      "buyer_boost": 1.0046080924243583,
-      "base_exp": 1.8064918424827217,
-      "quality_floor": 50.39232933998281,
-      "cliff_boost_threshold": 0.09853801563824413,
-      "cliff_must_bid_bonus": 0.8289136112148243,
-      "shade_margin": 0.5091114805625829,
-      "shade_save_ratio": 0.7814518716453847,
-      "denial_pressure_threshold": 0.5736306687208308,
-      "denial_boost": 1.0151203460287612,
-      "new_team_premium": 1.8727086947066875
+      "must_bid_mult": 2.731864026737913,
+      "useful_mult": 0.8095959447779926,
+      "floor_mult": 0.1595026342455466,
+      "must_bid_threshold": 0.9236161035999435,
+      "useful_threshold": 0.4192070873649761,
+      "overbid_dampen": 0.911693096041768,
+      "buyer_boost": 1.3124285195453185,
+      "base_exp": 1.9899140486772655,
+      "quality_floor": 64.86317210407495,
+      "cliff_boost_threshold": 0.05402209924571289,
+      "cliff_must_bid_bonus": 0.3763041266010902,
+      "shade_margin": 0.3680444458308922,
+      "shade_save_ratio": 0.7694121191996258,
+      "denial_pressure_threshold": 0.8130989088352196,
+      "denial_boost": 1.57169314494806,
+      "new_team_premium": 1.3252641428392018,
+      "marquee_recovery_mult": 1.6745504324222535,
+      "lost_t1_trigger": 1
     }
   },
   "AdaptiveRecoveryManager": {
     "evolved": {
-      "normal_exp": 1.9760504838063624,
-      "market_sensitivity": 0.7641601580522744,
-      "recovery_threshold": 0.9427355851948551,
-      "recovery_urgency_mult": 2.4623805364950964,
-      "recovery_sub_boost": 1.701332989170583,
-      "off_plan_floor": 0.23903113277383695,
-      "min_priority": 0.3628498115677212,
-      "t1_budget_fraction": 0.5406868808565926,
-      "new_team_premium": 1.9561702424819682
+      "normal_exp": 1.9755970527470124,
+      "market_sensitivity": 0.6216116865785942,
+      "recovery_threshold": 0.7809987278509753,
+      "recovery_urgency_mult": 1.9857935335868087,
+      "recovery_sub_boost": 2.86490984734019,
+      "off_plan_floor": 0.49841968644929,
+      "min_priority": 0.5665983670436529,
+      "t1_budget_fraction": 0.3417262269438021,
+      "new_team_premium": 1.629575721980129,
+      "marquee_recovery_mult": 1.2323200282470155,
+      "lost_t1_trigger": 2
+    }
+  },
+  "Persona_Atom_xi": {
+    "default": {
+      "overall_ratio": 0.838,
+      "t1_ratio": 0.412,
+      "t2_ratio": 0.771,
+      "t3_ratio": 1.921,
+      "early_ratio": 0.624,
+      "mid_ratio": 0.41,
+      "late_ratio": 1.64,
+      "budget_pct": 0.983,
+      "role_bat": 0.648,
+      "role_bowl": 1.743,
+      "role_ar": 0.311,
+      "role_wk": 0.629
+    }
+  },
+  "Persona_Attacking_Champions": {
+    "default": {
+      "overall_ratio": 0.965,
+      "t1_ratio": 0.418,
+      "t2_ratio": 0.895,
+      "t3_ratio": 1.561,
+      "early_ratio": 0.79,
+      "mid_ratio": 1.155,
+      "late_ratio": 0.95,
+      "budget_pct": 0.899,
+      "role_bat": 1.757,
+      "role_bowl": 0.419,
+      "role_ar": 0.034,
+      "role_wk": 1.176
+    }
+  },
+  "Persona_Blitzkriegers": {
+    "default": {
+      "overall_ratio": 1.943,
+      "t1_ratio": 0.619,
+      "t2_ratio": 0.835,
+      "t3_ratio": 3.456,
+      "early_ratio": 0.416,
+      "mid_ratio": 3.451,
+      "late_ratio": 1.966,
+      "budget_pct": 0.812,
+      "role_bat": 1.192,
+      "role_bowl": 2.75,
+      "role_ar": 2.982,
+      "role_wk": 1.0
+    }
+  },
+  "Persona_Eldritch_Echo": {
+    "default": {
+      "overall_ratio": 1.808,
+      "t1_ratio": 0.812,
+      "t2_ratio": 0.959,
+      "t3_ratio": 3.13,
+      "early_ratio": 0.982,
+      "mid_ratio": 1.94,
+      "late_ratio": 2.502,
+      "budget_pct": 0.934,
+      "role_bat": 1.252,
+      "role_bowl": 0.645,
+      "role_ar": 2.698,
+      "role_wk": 6.0
+    }
+  },
+  "Persona_Reapers_Scythes": {
+    "default": {
+      "overall_ratio": 0.938,
+      "t1_ratio": 0.732,
+      "t2_ratio": 0.717,
+      "t3_ratio": 1.409,
+      "early_ratio": 0.686,
+      "mid_ratio": 0.79,
+      "late_ratio": 1.604,
+      "budget_pct": 0.981,
+      "role_bat": 0.83,
+      "role_bowl": 0.555,
+      "role_ar": 0.644,
+      "role_wk": 2.409
+    }
+  },
+  "Persona_Yeagerists": {
+    "default": {
+      "overall_ratio": 1.531,
+      "t1_ratio": 0.434,
+      "t2_ratio": 0.583,
+      "t3_ratio": 16.5,
+      "early_ratio": 0.333,
+      "mid_ratio": 0.584,
+      "late_ratio": 3.32,
+      "budget_pct": 0.99,
+      "role_bat": 3.604,
+      "role_bowl": 0.704,
+      "role_ar": 0.512,
+      "role_wk": 0.358
+    }
+  },
+  "PersonaCounter": {
+    "default": {
+      "t1_early_mult": 1.8,
+      "t1_late_mult": 2.4,
+      "t3_cap_ratio": 1.2,
+      "t3_floor_bid_mult": 0.3,
+      "t2_mid_mult": 1.3,
+      "t2_late_mult": 0.9,
+      "early_deploy_threshold": 1.3,
+      "early_deploy_boost": 1.4,
+      "deny_on_pressure": true,
+      "deny_mult": 1.2
+    },
+    "evolved": {
+      "t1_early_mult": 1.3130059209650233,
+      "t1_late_mult": 1.5761897290772608,
+      "t3_cap_ratio": 0.8437326229755455,
+      "t3_floor_bid_mult": 0.10802762139530914,
+      "t2_mid_mult": 1.9913227031503604,
+      "t2_late_mult": 0.8017817475361514,
+      "early_deploy_threshold": 1.6820591773573792,
+      "early_deploy_boost": 1.1162656506902273,
+      "deny_on_pressure": true,
+      "deny_mult": 1.2
     }
   }
 }

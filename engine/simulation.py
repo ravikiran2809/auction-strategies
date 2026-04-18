@@ -48,6 +48,8 @@ class MCResult:
     avg_score: float
     std_score: float
     avg_purse_remaining: float = 0.0
+    avg_teams: float = 0.0          # avg unique IPL franchises per roster
+    avg_max_same_team: float = 0.0  # avg of max players from one franchise per roster
 
     @property
     def win_share(self) -> float:
@@ -80,6 +82,25 @@ class EvoResult:
     duration_s: float
 
 
+# ── Helpers ───────────────────────────────────────────────────────────────────
+def _wrap_marquee_pressure(agent: "Manager", pressure: float) -> None:
+    """Monkey-patch a static strategy's bid() to apply a T1/T2 boost in first 30 lots.
+
+    Used by --marquee-pressure to simulate human opponents overbidding on marquee players.
+    Only applied to NON-PTA strategies (static bidders without adaptive logic).
+    """
+    original_bid = agent.bid.__func__  # type: ignore[attr-defined]
+
+    def _boosted_bid(self, player: dict, state: dict, rnd: int) -> float:
+        raw = original_bid(self, player, state, rnd)
+        if rnd <= 30 and player.get("tier", 3) <= 2:
+            return raw * pressure
+        return raw
+
+    import types
+    agent.bid = types.MethodType(_boosted_bid, agent)
+
+
 # ── Monte Carlo ───────────────────────────────────────────────────────────────
 def run_monte_carlo(
     pool: list[dict],
@@ -90,20 +111,18 @@ def run_monte_carlo(
     evolved: bool = False,
     params_path: str | Path | None = None,
     verbose: bool = True,
+    marquee_pressure: float = 1.0,
 ) -> dict[str, MCResult]:
     """
     Run exactly N independent auctions, each with field_size randomly
     sampled strategies (without replacement per auction).
 
-    Two complementary metrics result:
-      win_share          = wins / N  (sums to 100% — one winner per auction)
-      conditional_win_rate = wins / participations  (per-game skill, fair
-                             because every draw is independent)
-
-    This avoids the shuffle-and-batch problem where the last batch has
-    fewer than field_size participants and the denominator inflates with
-    auctions a strategy was never part of.
+    marquee_pressure: float >= 1.0.  When > 1.0, all STATIC (non-PTA) strategies
+    apply this multiplier to their T1/T2 bids for the first 30 lots. This simulates
+    human overbidding on marquee players for calibrating marquee_recovery_mult.
     """
+    from .pta_strategies import PTAManager as _PTAManager
+
     names = strategy_names or list(STRATEGY_REGISTRY.keys())
     field_size = min(field_size, len(names))
 
@@ -111,11 +130,14 @@ def run_monte_carlo(
     participations: dict[str, int] = {nm: 0 for nm in names}
     scores: dict[str, list[float]] = {nm: [] for nm in names}
     purses: dict[str, list[float]] = {nm: [] for nm in names}
+    team_counts: dict[str, list[int]] = {nm: [] for nm in names}      # unique franchises
+    max_same_teams: dict[str, list[int]] = {nm: [] for nm in names}   # max from one franchise
 
     if verbose:
+        pressure_str = f"  marquee-pressure={marquee_pressure:.2f}" if marquee_pressure != 1.0 else ""
         print(
             f"\nMonte Carlo: {n} independent auctions × {field_size} managers each"
-            f" ({len(names)} strategies in pool) …",
+            f" ({len(names)} strategies in pool){pressure_str} …",
             end="", flush=True,
         )
 
@@ -126,6 +148,13 @@ def run_monte_carlo(
             instantiate(nm, evolved=evolved, params_path=params_path)
             for nm in batch
         ]
+
+        # Apply marquee pressure wrapper to static (non-PTA) strategies
+        if marquee_pressure != 1.0:
+            for ag in agents:
+                if not isinstance(ag, _PTAManager):
+                    _wrap_marquee_pressure(ag, marquee_pressure)
+
         run_auction([p.copy() for p in pool], agents, verbose=False)
         sim = {a.name: a.season_score() for a in agents}
         winner = max(sim, key=sim.__getitem__)
@@ -135,6 +164,15 @@ def run_monte_carlo(
             scores[nm].append(sim[nm])
             purses[nm].append(a.purse)
         wins[winner] += 1   # exactly one winner per auction
+
+        # Collect team diversity metrics per agent
+        for a in agents:
+            nm = a.name
+            teams = [e["player"].get("ipl_team") for e in a.roster if e["player"].get("ipl_team")]
+            unique = len(set(teams))
+            max_same = max((teams.count(t) for t in set(teams)), default=0)
+            team_counts[nm].append(unique)
+            max_same_teams[nm].append(max_same)
 
         if verbose and (i + 1) % 100 == 0:
             print(f" {i+1}…", end="", flush=True)
@@ -148,6 +186,8 @@ def run_monte_carlo(
         avg = sum(sc) / len(sc) if sc else 0.0
         std = math.sqrt(sum((s - avg) ** 2 for s in sc) / len(sc)) if sc else 0.0
         avg_purse = sum(purses[nm]) / len(purses[nm]) if purses[nm] else 0.0
+        avg_teams = sum(team_counts[nm]) / len(team_counts[nm]) if team_counts[nm] else 0.0
+        avg_max_same = sum(max_same_teams[nm]) / len(max_same_teams[nm]) if max_same_teams[nm] else 0.0
         results[nm] = MCResult(
             strategy=nm,
             wins=wins[nm],
@@ -156,6 +196,8 @@ def run_monte_carlo(
             avg_score=avg,
             std_score=std,
             avg_purse_remaining=avg_purse,
+            avg_teams=round(avg_teams, 2),
+            avg_max_same_team=round(avg_max_same, 2),
         )
 
     return results
@@ -171,13 +213,14 @@ def print_mc_results(results: dict[str, MCResult]) -> None:
     print(f"  WinShare   = wins / {n} total auctions -> sums to 100%")
     print(f"  WinRate/gm = wins / games-played  (equal baseline = {100/field_size:.1f}%)")
     print(sep)
-    print(f"  {'Strategy':<28} {'WinShare':>8}  {'WinRate/gm':>10}  {'Games':>6}  {'AvgPts':>8}  {'BudgetUse':>9}  Chart")
+    print(f"  {'Strategy':<28} {'WinShare':>8}  {'WinRate/gm':>10}  {'Games':>6}  {'AvgPts':>8}  {'BudgetUse':>9}  {'AvgTeams':>8}  {'MaxSame':>7}  Chart")
     for r in sorted(results.values(), key=lambda r: r.win_share, reverse=True):
         bar = "#" * max(1, int(r.win_share * 100 / 1.5))
         print(
             f"  {r.strategy:<28} {r.win_share*100:>7.2f}%  "
             f"{r.conditional_win_rate*100:>9.2f}%  {r.participations:>6}  "
-            f"{r.avg_score:>8.1f}  {r.budget_utilization*100:>8.1f}%  {bar}"
+            f"{r.avg_score:>8.1f}  {r.budget_utilization*100:>8.1f}%  "
+            f"{r.avg_teams:>8.1f}  {r.avg_max_same_team:>7.1f}  {bar}"
         )
     total_share = sum(r.win_share for r in results.values()) * 100
     print(sep)
@@ -364,6 +407,8 @@ def _evaluate_fitness(
     mc_runs: int,
     evolved: bool,
     params_path: Path | None,
+    field_size: int = 6,
+    marquee_pressure: float = 1.0,
 ) -> float:
     """
     Run mc_runs auctions and compute composite fitness:
@@ -377,9 +422,7 @@ def _evaluate_fitness(
         instantiate(nm, evolved=evolved, params_path=params_path)
         for nm in opponent_names
     ]
-    # Match real game: target + 5 opponents = 6 managers per auction
-    _FIELD = 6
-    n_opps = min(_FIELD - 1, len(all_opp_agents))
+    n_opps = min(field_size - 1, len(all_opp_agents))
 
     wins = 0
     scores: list[float] = []
@@ -387,7 +430,11 @@ def _evaluate_fitness(
     for _ in range(mc_runs):
         sampled_opps = random.sample(all_opp_agents, n_opps)
         target_agent = TargetCls(name=target_name, params=copy.deepcopy(params))
-        agents = [target_agent] + [copy.deepcopy(a) for a in sampled_opps]
+        opp_copies = [copy.deepcopy(a) for a in sampled_opps]
+        if marquee_pressure > 1.0:
+            for opp in opp_copies:
+                _wrap_marquee_pressure(opp, marquee_pressure)
+        agents = [target_agent] + opp_copies
         run_auction([p.copy() for p in pool], agents, verbose=False)
         sim = {a.name: a.season_score() for a in agents}
         top = max(sim.values())
@@ -433,6 +480,8 @@ def _ga_evolve(
     population: int,
     evolved: bool,
     params_path: Path | None,
+    field_size: int = 6,
+    marquee_pressure: float = 1.0,
 ) -> EvoResult:
     """
     Self-adaptive GA with BLX-α crossover, log-normal σ evolution,
@@ -474,9 +523,11 @@ def _ga_evolve(
     def evaluate(vec: list[float]) -> float:
         """Average of 2 evaluations to suppress MC noise."""
         f1 = _evaluate_fitness(pool, target_name, params_from_vec(vec),
-                               opponent_names, mc_runs, evolved, params_path)
+                               opponent_names, mc_runs, evolved, params_path,
+                               field_size, marquee_pressure)
         f2 = _evaluate_fitness(pool, target_name, params_from_vec(vec),
-                               opponent_names, mc_runs, evolved, params_path)
+                               opponent_names, mc_runs, evolved, params_path,
+                               field_size, marquee_pressure)
         return (f1 + f2) / 2.0
 
     # Initialise population: list of (x, sigma, fitness)
@@ -578,6 +629,8 @@ def _cmaes_evolve(
     mc_runs: int,
     evolved: bool,
     params_path: Path | None,
+    field_size: int = 6,
+    marquee_pressure: float = 1.0,
 ) -> EvoResult:
     """CMA-ES via the `cma` library."""
     try:
@@ -647,7 +700,8 @@ def _cmaes_evolve(
         for sol in solutions:
             p = params_from_vec(sol)
             f = _evaluate_fitness(
-                pool, target_name, p, opponent_names, mc_runs, evolved, params_path
+                pool, target_name, p, opponent_names, mc_runs, evolved, params_path,
+                field_size, marquee_pressure,
             )
             fitnesses.append(-f)  # CMA-ES minimises
         es.tell(solutions, fitnesses)
@@ -683,6 +737,8 @@ def evolve_strategy(
     params_path: str | Path | None = None,
     save_path: str | Path | None = None,
     plot: bool = True,
+    field_size: int = 6,
+    marquee_pressure: float = 1.0,
 ) -> dict[str, EvoResult]:
     """
     Evolve parameters for target_strategy against a fixed opponent field.
@@ -715,20 +771,22 @@ def evolve_strategy(
     results: dict[str, EvoResult] = {}
 
     if algo in ("ga", "both"):
-        print(f"\n[GA] Evolving {target_strategy} …")
+        print(f"\n[GA] Evolving {target_strategy} (field={field_size}, pressure={marquee_pressure}) …")
         r = _ga_evolve(
             pool, target_strategy, opponent_names,
             generations=generations, mc_runs=mc_runs,
             population=population, evolved=evolved, params_path=p_path,
+            field_size=field_size, marquee_pressure=marquee_pressure,
         )
         results["ga"] = r
 
     if algo in ("cmaes", "both"):
-        print(f"\n[CMA-ES] Evolving {target_strategy} …")
+        print(f"\n[CMA-ES] Evolving {target_strategy} (field={field_size}, pressure={marquee_pressure}) …")
         r = _cmaes_evolve(
             pool, target_strategy, opponent_names,
             generations=generations, mc_runs=mc_runs,
             evolved=evolved, params_path=p_path,
+            field_size=field_size, marquee_pressure=marquee_pressure,
         )
         results["cmaes"] = r
 
