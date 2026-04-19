@@ -170,7 +170,7 @@
   },
   "Brijesh Sharma": {
     "injury_status": "fit",
-    "form_rating": 1.27,
+    "form_rating": 0.6,
     "availability_note": "2 matches played — strong but limited sample.",
     "last_updated": "2026-04-17"
   },
@@ -284,9 +284,9 @@
   },
   "Harsh Dubey": {
     "injury_status": "fit",
-    "form_rating": 1.0,
-    "availability_note": "Solid form: 45.0 pts/match over 5 games.",
-    "last_updated": "2026-04-17"
+    "form_rating": 1.05,
+    "availability_note": "Solid form: 45.0 pts/match over 5 games. Regular SRH starter, playoff team. Mild form boost.",
+    "last_updated": "2026-04-19"
   },
   "HV Patel": {
     "injury_status": "fit",
@@ -380,7 +380,7 @@
   },
   "Kartik Tyagi": {
     "injury_status": "fit",
-    "form_rating": 0.91,
+    "form_rating": 0.6,
     "availability_note": "Below-average form: 32.2 pts/match over 5 games.",
     "last_updated": "2026-04-17"
   },
@@ -728,9 +728,9 @@
   },
   "R Shepherd": {
     "injury_status": "fit",
-    "form_rating": 1.0,
-    "availability_note": "Solid form: 45.0 pts/match over 5 games.",
-    "last_updated": "2026-04-17"
+    "form_rating": 2,
+    "availability_note": "Strong form: 45.0 pts/match over 5 games. Regular starter, 5/5 RCB games. Boosted as priority ARM/SCB target.",
+    "last_updated": "2026-04-19"
   },
   "R Powell": {
     "injury_status": "fit",
@@ -908,7 +908,7 @@
   },
   "VG Arora": {
     "injury_status": "fit",
-    "form_rating": 0.94,
+    "form_rating": 0.4,
     "availability_note": "Below-average form: 36.2 pts/match over 5 games.",
     "last_updated": "2026-04-17"
   },
@@ -932,9 +932,9 @@
   },
   "Vijaykumar Vyshak": {
     "injury_status": "fit",
-    "form_rating": 1.04,
-    "availability_note": "Solid form: 51.25 pts/match over 4 games.",
-    "last_updated": "2026-04-17"
+    "form_rating": 1.6,
+    "availability_note": "Strong form: 51.25 pts/match over 4 games. 4/5 PBKS games, playoff team. Boosted as priority ARM/SCB target.",
+    "last_updated": "2026-04-19"
   },
   "V Nigam": {
     "injury_status": "fit",

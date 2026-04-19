@@ -164,7 +164,7 @@ class Manager:
         # starting pace (e.g. missed too many T3 fillers), boost WTP proportionally
         # to deploy surplus.  Caps at 2× to avoid panic overbidding.
         starting_pace = self.total_purse / self.max_roster
-        if self.slots > 0 and self.cash_per_slot > starting_pace * 1.3:
+        if self.slots > 1 and self.cash_per_slot > starting_pace * 1.3:
             urgency_boost = min(2.0, self.cash_per_slot / starting_pace)
             wtp = max(wtp, wtp * urgency_boost)
 
@@ -191,7 +191,7 @@ class Manager:
         # Floor bid minimum: always willing to pay at least 1.5× base_price so
         # strategies with budget surplus don't pass on cheap T3 fillers entirely.
         # Only enforces when we have budget headroom (not in desperation with mandatory).
-        if self.slots > 0 and self.mandatory == 0:
+        if self.slots > 1 and self.mandatory == 0:
             floor = player.get("base_price", 1.0) * 1.5
             if self.cash_per_slot > self.total_purse / self.max_roster * 1.3:
                 wtp = max(wtp, floor)

@@ -428,6 +428,13 @@ class AdaptiveRecoveryManager(PTAManager):
     def willingness_to_pay(self, player: dict, state: dict, rnd: int) -> float:
         if self.slots == 0:
             return 0.0
+        # Quality gate: with 1 slot remaining and no mandatory fills, skip players
+        # whose intel-adjusted projected value is below 100 pts.
+        # projected_points already reflects any overrides.json tweaks (applied in _get_pool).
+        # intel_mult captures injury (0.0) and form (0.9–1.1).
+        if self.slots <= 1 and self.mandatory == 0:
+            if player["projected_points"] * intel_mult(player["player_name"]) < 100.0:
+                return 0.0
         p = self.params
 
         all_remaining = [
