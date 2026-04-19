@@ -211,6 +211,9 @@ def _get_pool() -> list[dict]:
         pool = build_pool(model=WeightedSeasonModel({"2024": 1.0}))
         export_pool(pool)
     pool = load_pool()
+    # Always apply overrides.json so projected_points tweaks flow through to strategies
+    from engine.overrides import load_overrides, apply_overrides
+    pool = apply_overrides(pool, overrides=load_overrides())
     # Enrich each player with their auction display name from player_master.json
     for p in pool:
         m = _MASTER_MAP.get(p["player_name"])
@@ -670,12 +673,14 @@ def post_advice(req: AdviceRequest):
 
     bid = round(float(agent.bid(player, state, rnd=1)), 2)
 
-    # Cap at 20% of remaining purse to prevent single-player over-commitment.
-    # The evolved multipliers (must_bid × cliff ≈ 2.3×) were trained bot-vs-bot
-    # and push elite outliers (Narine, Sai Sudharsan) to ₹30+ Cr — above real IPL
-    # auction highs (Starc ₹24.75 Cr, Kohli ₹21 Cr).  20% keeps the ceiling at
-    # ₹24 Cr for a ₹120 Cr purse, matching the top of real competitive bidding.
-    purse_cap = round(req.my_purse * 0.20, 2)
+    # Cap bid to prevent single-player over-commitment.
+    # With multiple slots remaining: cap at 20% of purse (≈ ₹24 Cr at ₹120 Cr),
+    # matching top of real IPL competitive bidding (Starc ₹24.75 Cr, Kohli ₹21 Cr).
+    # With 1 slot remaining: can spend the full remaining purse on the last player.
+    if my_slots <= 1:
+        purse_cap = round(req.my_purse, 2)
+    else:
+        purse_cap = round(req.my_purse * 0.20, 2)
     bid = min(bid, purse_cap)
 
     # ── Decision log — shows exactly why the strategy returned this ceiling ──
